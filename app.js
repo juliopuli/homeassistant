@@ -43,6 +43,7 @@ class HomaOS {
             item.addEventListener('click', () => {
                 const view = item.getAttribute('data-view');
 
+                // IMPORTANT: Set active class first so switchView knows what to render
                 document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
                 item.classList.add('active');
 
@@ -63,6 +64,45 @@ class HomaOS {
         document.getElementById('view-title').innerText = titles[viewId] || 'HOMA - Habitaciones';
 
         this.renderCurrentView();
+    }
+
+    // ==========================================
+    // Visual Debugging (Toasts)
+    // ==========================================
+    showToast(msg, isError = false) {
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            container.style.position = 'fixed';
+            container.style.bottom = '20px';
+            container.style.left = '50%';
+            container.style.transform = 'translateX(-50%)';
+            container.style.zIndex = '9999';
+            container.style.display = 'flex';
+            container.style.flexDirection = 'column';
+            container.style.gap = '10px';
+            container.style.pointerEvents = 'none'; // Don't block clicks
+            document.body.appendChild(container);
+        }
+
+        const toast = document.createElement('div');
+        toast.textContent = msg;
+        toast.style.background = isError ? 'rgba(239, 68, 68, 0.9)' : 'rgba(20, 20, 20, 0.9)';
+        toast.style.color = '#fff';
+        toast.style.padding = '12px 24px';
+        toast.style.borderRadius = '8px';
+        toast.style.border = isError ? '1px solid #fca5a5' : '1px solid var(--accent-blue)';
+        toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
+        toast.style.fontSize = '14px';
+        toast.style.transition = 'opacity 0.3s ease';
+
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
     }
 
     // ==========================================
@@ -180,6 +220,12 @@ class HomaOS {
     }
 
     async handleMessage(data) {
+        // Intercept HA Errors sent back to us
+        if (data.type === 'result' && !data.success && data.error) {
+            this.showToast(`Error HA: ${data.error.message}`, true);
+            console.error("HA Comm Error:", data);
+        }
+
         if (data.type === 'auth_required') {
             this.send({ type: 'auth', access_token: this.accessToken });
         } else if (data.type === 'auth_ok') {
@@ -487,6 +533,7 @@ class HomaOS {
     // ==========================================
     toggleService(domain, entityId, targetState) {
         if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+            this.showToast("Error: No hay conexión con Home Assistant", true);
             console.error("No socket connected to send toggle command.");
             return;
         }
@@ -498,12 +545,10 @@ class HomaOS {
             service: targetState ? "turn_on" : "turn_off",
             service_data: {
                 entity_id: entityId
-            },
-            target: {
-                entity_id: entityId
             }
         };
 
+        this.showToast(`➜ Enviando: ${msg.service} a ${entityId}`);
         console.log("Sending service call:", msg);
         this.socket.send(JSON.stringify(msg));
     }
