@@ -217,7 +217,11 @@ class HomaOS {
                 msg.id = this.msgId++;
             }
         }
-        this.socket.send(JSON.stringify(msg));
+        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+            this.socket.send(JSON.stringify(msg));
+        } else {
+            console.error('Cannot send payload, WebSocket not in OPEN state.');
+        }
     }
 
     fetchCoreRegistries() {
@@ -254,7 +258,7 @@ class HomaOS {
         this.updateCardUI(entityId);
 
         const domain = entityId.split('.')[0];
-        if ((domain === 'light' || domain === 'switch') && oldState !== newState) {
+        if (domain === 'light' && oldState !== newState) {
             // Update active count
             if (newState === 'on' && oldState !== 'on') this.activeLightsCount++;
             else if (newState !== 'on' && oldState === 'on') this.activeLightsCount = Math.max(0, this.activeLightsCount - 1);
@@ -285,8 +289,8 @@ class HomaOS {
         Object.keys(this.states).forEach(entityId => {
             const domain = entityId.split('.')[0];
 
-            // Phase 1 Focus: Only lights and switches
-            if (domain !== 'light' && domain !== 'switch') return;
+            // Phase 1 Focus: ABSOLUTELY ONLY lights. No chaotic switches.
+            if (domain !== 'light') return;
 
             const stateObj = this.states[entityId];
             const regEntry = this.entityReg.find(e => e.entity_id === entityId);
@@ -305,8 +309,33 @@ class HomaOS {
                 areaId = deviceToArea[regEntry.device_id];
             }
 
-            const roomName = areaId !== 'unassigned' && areaDict[areaId] ? areaDict[areaId] : 'Generales (Sin Habitación)';
             let name = (stateObj.a && stateObj.a.friendly_name) || (regEntry ? regEntry.original_name : '') || entityId;
+            let roomName = areaId !== 'unassigned' && areaDict[areaId] ? areaDict[areaId] : null;
+
+            // Intelligent Fallback: Guess room from entity name
+            if (!roomName) {
+                const textToParse = name.toLowerCase();
+                const genericWords = ['luz', 'luces', 'light', 'foco', 'lampara', 'lámpara', 'techo', 'pared', 'tira', 'led', 'principal', 'secundaria'];
+                const words = textToParse.split(/[\s_]+/);
+
+                const roomWords = words.filter(w => !genericWords.includes(w) && w.length > 2);
+
+                if (roomWords.length > 0) {
+                    const guess = roomWords[0];
+                    if (guess.includes('salon') || guess.includes('salón')) roomName = 'Salón';
+                    else if (guess.includes('comed')) roomName = 'Comedor';
+                    else if (guess.includes('coci')) roomName = 'Cocina';
+                    else if (guess.includes('dorm') || guess.includes('hab')) roomName = 'Dormitorios';
+                    else if (guess.includes('bañ') || guess.includes('aseo')) roomName = 'Baños';
+                    else if (guess.includes('pasil') || guess.includes('entrad') || guess.includes('hall')) roomName = 'Pasillo y Entrada';
+                    else if (guess.includes('terra') || guess.includes('patio') || guess.includes('jard') || guess.includes('balc')) roomName = 'Exterior';
+                    else if (guess.includes('gara')) roomName = 'Garaje';
+                    else if (guess.includes('estud') || guess.includes('despa')) roomName = 'Estudio';
+                    else roomName = guess.charAt(0).toUpperCase() + guess.slice(1);
+                } else {
+                    roomName = 'Otras Luces';
+                }
+            }
 
             if (!this.rooms[roomName]) {
                 this.rooms[roomName] = [];
@@ -323,7 +352,7 @@ class HomaOS {
                 this.activeLightsCount++;
             }
         });
-        console.log("Phase 1 Room Mapping complete:", this.rooms);
+        console.log("Phase 1 Intelligent Room Mapping complete:", this.rooms);
     }
 
     // ==========================================
@@ -366,10 +395,10 @@ class HomaOS {
         if (!container) return;
         container.innerHTML = '';
 
-        // Sort rooms: Generales last
+        // Sort rooms: Otras Luces last
         const sortedRoomNames = Object.keys(this.rooms).sort((a, b) => {
-            if (a.includes('Sin Habitación')) return 1;
-            if (b.includes('Sin Habitación')) return -1;
+            if (a.includes('Otras Luces')) return 1;
+            if (b.includes('Otras Luces')) return -1;
             return a.localeCompare(b);
         });
 
@@ -406,12 +435,26 @@ class HomaOS {
         card.id = `card-${entity.id.replace(/\./g, '-')}`;
         if (entity.state === 'on') card.classList.add('state-on');
 
-        clone.querySelector('.entity-name').textContent = entity.name;
-        clone.querySelector('.entity-state').textContent = entity.state === 'on' ? 'Encendido' : 'Apagado';
+        const nameNode = clone.querySelector('.entity-name');
+        const stateNode = clone.querySelector('.entity-state');
+        nameNode.textContent = entity.name;
+        stateNode.textContent = entity.state === 'on' ? 'Encendido' : 'Apagado';
 
         const checkbox = clone.querySelector('input');
         checkbox.checked = entity.state === 'on';
-        checkbox.addEventListener('change', (e) => this.toggleService(entity.domain, entity.id, e.target.checked));
+
+        // Use the robust DOM references we just saved BEFORE attaching event
+        checkbox.addEventListener('change', (e) => {
+            const isChecked = e.target.checked;
+            console.log(`Toggling ${entity.id} to ${isChecked}`);
+
+            // Visual optimistic UI update
+            card.classList.toggle('state-on', isChecked);
+            stateNode.textContent = isChecked ? 'Encendido' : 'Apagado';
+
+            // Fire robust service call
+            this.toggleService(entity.domain, entity.id, isChecked);
+        });
 
         return clone;
     }
@@ -426,9 +469,10 @@ class HomaOS {
         const domain = entityId.split('.')[0];
         const state = stateObj.s;
 
-        if (domain === 'light' || domain === 'switch') {
+        if (domain === 'light') {
             const checkbox = card.querySelector('input[type="checkbox"]');
             const stateText = card.querySelector('.entity-state');
+
             if (checkbox) checkbox.checked = (state === 'on');
             if (stateText) stateText.textContent = state === 'on' ? 'Encendido' : 'Apagado';
 
@@ -441,11 +485,19 @@ class HomaOS {
     // Services Action
     // ==========================================
     toggleService(domain, entityId, targetState) {
+        if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+            console.error("No socket connected to send toggle command.");
+            return;
+        }
+
+        // Bulletproof payload compatible with almost all generations of HA WebSocket API
         this.send({
             type: "call_service",
             domain: domain,
             service: targetState ? "turn_on" : "turn_off",
-            target: { entity_id: entityId }
+            service_data: {
+                entity_id: entityId
+            }
         });
     }
 }
