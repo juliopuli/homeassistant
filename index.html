@@ -16,22 +16,17 @@
     <div id="login-overlay" class="login-overlay">
         <div class="login-card">
             <h2>HOMA SECURE LOGIN</h2>
-            <p>Introduce tus credenciales para conectar con tu Home Assistant. Estos datos se guardarán solo en este
-                navegador.</p>
+            <p>Conecta tu dashboard usando el acceso oficial de Home Assistant. No necesitas tokens manuales.</p>
             <form id="login-form">
                 <div class="input-group">
                     <label for="ha-url">Dirección de Home Assistant</label>
                     <input type="text" id="ha-url" placeholder="https://tu-ha.com"
                         value="https://julhomecala.priona.com" required>
                 </div>
-                <div class="input-group">
-                    <label for="token">Token de Acceso de Larga Duración</label>
-                    <input type="password" id="token" placeholder="Tu token JWT..." required>
-                </div>
-                <button type="submit" class="btn-login">Conectar Dashboard</button>
+                <button type="submit" class="btn-login">Iniciar Sesión con Home Assistant</button>
             </form>
-            <p style="margin-top: 2rem; font-size: 0.7rem; opacity: 0.5;">Tu privacidad es lo primero. Nada sale de tu
-                navegador.</p>
+            <p style="margin-top: 2rem; font-size: 0.7rem; opacity: 0.5;">Te redirigiremos a tu instancia de Home
+                Assistant para identificarte de forma segura.</p>
         </div>
     </div>
 
