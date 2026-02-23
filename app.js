@@ -42,10 +42,11 @@ class HomaOS {
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', () => {
                 const view = item.getAttribute('data-view');
-                this.switchView(view);
 
                 document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
                 item.classList.add('active');
+
+                this.switchView(view);
             });
         });
     }
@@ -495,6 +496,9 @@ class HomaOS {
             type: "call_service",
             domain: domain,
             service: targetState ? "turn_on" : "turn_off",
+            service_data: {
+                entity_id: entityId
+            },
             target: {
                 entity_id: entityId
             }
