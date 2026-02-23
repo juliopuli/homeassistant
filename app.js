@@ -202,60 +202,83 @@ class HomaOS {
             const success = await this.refreshTokens();
             if (success) this.connect();
             else { localStorage.clear(); location.reload(); }
-        } else if (data.type === 'event' && data.event.variables) {
-            this.updateBulk(data.event.variables);
-        } else if (data.type === 'event' && data.event.a) {
-            this.updateIncremental(data.event.a);
-        } else if (data.id === 100 && data.success) { // Area Registry
-            this.areas = data.result;
-            this.areas.forEach(a => { this.rooms[a.area_id] = { name: a.name, entities: [] }; });
-        } else if (data.id === 101 && data.success) { // Device Registry
-            this.deviceReg = data.result;
-        } else if (data.id === 102 && data.success) { // Entity Registry
-            this.entityReg = data.result;
-            this.subscribe(); // Iniciar suscripción de estados una vez leemos todo
+        } else if (data.id === 100) {
+            if (data.success) {
+                this.areas = data.result;
+                this.areas.forEach(a => { this.rooms[a.area_id] = { name: a.name, entities: [], activeCount: 0 }; });
+            }
+            this.send({ type: "config/device_registry/list", id: 101 });
+        } else if (data.id === 101) {
+            if (data.success) this.deviceReg = data.result;
+            this.send({ type: "config/entity_registry/list", id: 102 });
+        } else if (data.id === 102) {
+            if (data.success) this.entityReg = data.result;
+            this.send({ type: "get_states", id: 103 });
+        } else if (data.id === 103 && data.success) {
+            this.handleInitialStates(data.result);
+            this.send({ type: "subscribe_events", event_type: "state_changed", id: 104 });
+        } else if (data.type === 'event' && data.event && data.event.event_type === 'state_changed') {
+            this.handleStateChange(data.event.data.new_state);
         }
     }
 
     send(msg) {
-        if (msg.type !== 'auth') msg.id = this.msgId++;
+        if (msg.type !== 'auth') {
+            if (msg.id === undefined) {
+                msg.id = this.msgId++;
+            }
+        }
         this.socket.send(JSON.stringify(msg));
     }
 
     fetchCoreRegistries() {
         this.send({ type: "config/area_registry/list", id: 100 });
-        this.send({ type: "config/device_registry/list", id: 101 });
-        this.send({ type: "config/entity_registry/list", id: 102 });
-    }
-
-    subscribe() {
-        this.send({ type: "subscribe_entities" });
     }
 
     // ==========================================
     // State Updates & Classification
     // ==========================================
-    updateBulk(variables) {
-        this.states = variables;
+    handleInitialStates(statesArray) {
+        this.states = {};
+        statesArray.forEach(stateObj => {
+            this.states[stateObj.entity_id] = {
+                s: stateObj.state,
+                a: stateObj.attributes || {}
+            };
+        });
+
         this.classifyEntities();
         this.renderCurrentView();
     }
 
-    updateIncremental(changes) {
-        let changedCategories = new Set();
-        Object.keys(changes).forEach(id => {
-            if (!this.states[id]) this.states[id] = {};
-            Object.assign(this.states[id], changes[id]);
+    handleStateChange(newStateObj) {
+        if (!newStateObj) return;
+        const entityId = newStateObj.entity_id;
+        const oldState = this.states[entityId] ? this.states[entityId].s : null;
+        const newState = newStateObj.state;
 
-            // Re-render only affected single cards if possible, 
-            // but for now re-render current view
-            this.updateCardUI(id);
-        });
+        this.states[entityId] = {
+            s: newStateObj.state,
+            a: newStateObj.attributes || {}
+        };
 
-        // Full re-render needed for some logic (e.g., active lights count)
-        const activeView = document.querySelector('.nav-item.active').getAttribute('data-view');
-        if (activeView === 'home' || activeView === 'rooms') {
-            this.renderCurrentView();
+        this.updateCardUI(entityId);
+
+        const domain = entityId.split('.')[0];
+        if (domain === 'light' && oldState !== newState) {
+            const regEntry = this.entityReg.find(e => e.entity_id === entityId);
+            const areaId = regEntry ? regEntry.area_id : 'unassigned';
+
+            if (this.rooms[areaId]) {
+                if (newState === 'on' && oldState !== 'on') this.rooms[areaId].activeCount++;
+                else if (newState !== 'on' && oldState === 'on') this.rooms[areaId].activeCount = Math.max(0, this.rooms[areaId].activeCount - 1);
+            }
+
+            const activeView = document.querySelector('.nav-item.active');
+            const viewId = activeView ? activeView.getAttribute('data-view') : '';
+            if (viewId === 'home' || viewId === 'rooms') {
+                this.renderCurrentView();
+            }
         }
     }
 
@@ -266,24 +289,26 @@ class HomaOS {
         this.rooms = {};
         this.areas.forEach(a => { this.rooms[a.area_id] = { name: a.name, entities: [], activeCount: 0 }; });
 
+        const self = this;
+
         Object.keys(this.states).forEach(entityId => {
             const domain = entityId.split('.')[0];
-            const stateObj = this.states[entityId];
             const regEntry = this.entityReg.find(e => e.entity_id === entityId);
 
-            if (!regEntry || regEntry.disabled_by || regEntry.hidden_by) return; // Skip hidden/disabled
+            if (regEntry && (regEntry.disabled_by || regEntry.hidden_by)) return; // Skip hidden/disabled
 
-            const attributes = stateObj.a || {};
-            const deviceClass = attributes.device_class || regEntry.original_device_class || '';
+            const getAttr = () => self.states[entityId].a || {};
+            const deviceClass = getAttr().device_class || (regEntry ? regEntry.original_device_class : '') || '';
+            const areaId = (regEntry ? regEntry.area_id : '') || 'unassigned';
 
             // Build Unified Entity Object
             const entity = {
                 id: entityId,
                 domain: domain,
-                state: stateObj.s,
-                attributes: attributes,
-                name: attributes.friendly_name || regEntry.original_name || entityId,
-                areaId: regEntry.area_id || 'unassigned',
+                get state() { return self.states[entityId] ? self.states[entityId].s : ''; },
+                get attributes() { return self.states[entityId] ? self.states[entityId].a || {} : {}; },
+                get name() { return this.attributes.friendly_name || (regEntry ? regEntry.original_name : '') || entityId; },
+                areaId: areaId,
                 deviceClass: deviceClass
             };
 
@@ -470,7 +495,7 @@ class HomaOS {
         const clone = tpl.content.cloneNode(true);
         const card = clone.querySelector('.entity-card');
 
-        card.id = `card-${entity.id.replace('.', '-')}`;
+        card.id = `card-${entity.id.replace(/\./g, '-')}`;
         if (entity.state === 'on') card.classList.add('state-on');
 
         clone.querySelector('.entity-name').textContent = entity.name;
@@ -488,7 +513,7 @@ class HomaOS {
         const clone = tpl.content.cloneNode(true);
         const card = clone.querySelector('.entity-card');
 
-        card.id = `card-${entity.id.replace('.', '-')}`;
+        card.id = `card-${entity.id.replace(/\./g, '-')}`;
 
         let icon = 'activity';
         if (entity.deviceClass === 'temperature') icon = 'thermometer';
@@ -523,7 +548,7 @@ class HomaOS {
         const clone = tpl.content.cloneNode(true);
         const card = clone.querySelector('.entity-card');
 
-        card.id = `card-${entity.id.replace('.', '-')}`;
+        card.id = `card-${entity.id.replace(/\./g, '-')}`;
         clone.querySelector('.entity-name').textContent = entity.name;
 
         if (entity.state === 'playing' || entity.state === 'paused') {
@@ -551,7 +576,7 @@ class HomaOS {
         const stateObj = this.states[entityId];
         if (!stateObj) return;
 
-        const card = document.getElementById(`card-${entityId.replace('.', '-')}`);
+        const card = document.getElementById(`card-${entityId.replace(/\./g, '-')}`);
         if (!card) return;
 
         const domain = entityId.split('.')[0];
