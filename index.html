@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HOMA OS - Smart Home Environment</title>
+    <title>HOMA OS - Phase 1</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -50,21 +50,13 @@
                         <i data-lucide="grid-3x3"></i>
                         <span>Habitaciones</span>
                     </li>
-                    <li class="nav-item" data-view="climate">
+                    <li class="nav-item" style="opacity: 0.3; pointer-events: none;">
                         <i data-lucide="thermometer"></i>
-                        <span>Climatización</span>
+                        <span>Climatización (En desarrollo)</span>
                     </li>
-                    <li class="nav-item" data-view="energy">
+                    <li class="nav-item" style="opacity: 0.3; pointer-events: none;">
                         <i data-lucide="zap"></i>
-                        <span>Energía</span>
-                    </li>
-                    <li class="nav-item" data-view="media">
-                        <i data-lucide="monitor-play"></i>
-                        <span>Multimedia</span>
-                    </li>
-                    <li class="nav-item" data-view="security">
-                        <i data-lucide="shield"></i>
-                        <span>Seguridad</span>
+                        <span>Energía (En desarrollo)</span>
                     </li>
                 </ul>
             </nav>
@@ -88,13 +80,6 @@
                     <h1 id="view-title">Vista General</h1>
                     <p class="subtitle" id="current-date">Cargando fecha...</p>
                 </div>
-                <div class="top-widgets">
-                    <!-- Global weather/temperature widget -->
-                    <div class="widget weather-widget" id="global-weather" style="display: none;">
-                        <i data-lucide="cloud"></i>
-                        <span id="global-temp">--°C</span>
-                    </div>
-                </div>
             </header>
 
             <!-- Dynamic Views Container -->
@@ -102,13 +87,9 @@
 
                 <!-- 1. Home / Overview View -->
                 <section id="view-home" class="view-section active">
-                    <div class="home-alert-banner" id="home-alerts" style="display: none;">
-                        <!-- Open doors, active alarms, etc. will go here -->
-                    </div>
                     <div class="grid-layout overview-grid" id="home-summaries">
-                        <!-- Dynamic summary cards (Lights On, Power usage, Climate status) -->
                         <div class="loading-state">
-                            <span class="pulse"></span> Procesando entidades de tu hogar...
+                            <span class="pulse"></span> Obteniendo luces y habitaciones desde Home Assistant...
                         </div>
                     </div>
                 </section>
@@ -116,35 +97,7 @@
                 <!-- 2. Rooms View -->
                 <section id="view-rooms" class="view-section">
                     <div class="grid-layout rooms-grid" id="rooms-container">
-                        <!-- Rooms and all their mixed entities -->
-                    </div>
-                </section>
-
-                <!-- 3. Climate View -->
-                <section id="view-climate" class="view-section">
-                    <div class="grid-layout" id="climate-container">
-                        <!-- Thermostats and temperature/humidity sensors -->
-                    </div>
-                </section>
-
-                <!-- 4. Energy View -->
-                <section id="view-energy" class="view-section">
-                    <div class="grid-layout" id="energy-container">
-                        <!-- Power sensors, battery, wallbox -->
-                    </div>
-                </section>
-
-                <!-- 5. Media View -->
-                <section id="view-media" class="view-section">
-                    <div class="grid-layout media-grid" id="media-container">
-                        <!-- TVs, Speakers -->
-                    </div>
-                </section>
-
-                <!-- 6. Security View -->
-                <section id="view-security" class="view-section">
-                    <div class="grid-layout" id="security-container">
-                        <!-- Alarms, locks, door/window sensors, presence -->
+                        <!-- Rooms and lights will be populated here -->
                     </div>
                 </section>
 
@@ -152,7 +105,7 @@
         </main>
     </div>
 
-    <!-- Templates for Dynamic Cards -->
+    <!-- Template for Light/Switch Cards -->
     <template id="tpl-card-light">
         <div class="entity-card light-card">
             <div class="entity-info">
@@ -169,40 +122,9 @@
         </div>
     </template>
 
-    <template id="tpl-card-sensor">
-        <div class="entity-card sensor-card">
-            <div class="entity-info">
-                <div class="entity-icon"><i data-lucide="activity"></i></div>
-                <div class="entity-text">
-                    <div class="entity-name">Name</div>
-                    <div class="entity-value"><span>--</span> <small>unit</small></div>
-                </div>
-            </div>
-        </div>
-    </template>
-
-    <template id="tpl-card-media">
-        <div class="entity-card media-card">
-            <div class="media-artwork" style="display: none;"></div>
-            <div class="media-content">
-                <div class="entity-icon"><i data-lucide="tv"></i></div>
-                <div class="entity-text">
-                    <div class="entity-name">Name</div>
-                    <div class="media-title">No hay reproducción</div>
-                </div>
-                <div class="media-controls">
-                    <button class="btn-icon media-play-pause"><i data-lucide="power"></i></button>
-                    <!-- Volume/App controls added dynamically -->
-                </div>
-            </div>
-        </div>
-    </template>
-
     <script type="module" src="app.js"></script>
     <script>
         lucide.createIcons();
-
-        // Simple date formatting
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         let dateStr = new Date().toLocaleDateString('es-ES', options);
         document.getElementById('current-date').innerText = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
