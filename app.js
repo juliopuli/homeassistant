@@ -11,19 +11,9 @@ class HomaOS {
         this.entityReg = [];
         this.deviceReg = [];
 
-        // Categorized Entities
-        this.categories = {
-            lights: [],
-            climate: [],
-            energy: [],
-            security: [],
-            media: [],
-            sensors: [],
-            others: []
-        };
-
-        // Rooms map: area_id -> { name, entities: [] }
+        // Phase 1: Robust Room & Light Mapping
         this.rooms = {};
+        this.activeLightsCount = 0;
 
         // Auth
         this.haUrl = localStorage.getItem('ha_url') || CONFIG.HA_URL;
@@ -67,13 +57,9 @@ class HomaOS {
 
         const titles = {
             home: 'Vista General',
-            rooms: 'Habitaciones',
-            climate: 'Climatización',
-            energy: 'Energía',
-            media: 'Multimedia',
-            security: 'Seguridad'
+            rooms: 'Habitaciones (Luces)'
         };
-        document.getElementById('view-title').innerText = titles[viewId] || 'HOMA OS';
+        document.getElementById('view-title').innerText = titles[viewId] || 'HOMA - Habitaciones';
 
         this.renderCurrentView();
     }
@@ -205,14 +191,17 @@ class HomaOS {
         } else if (data.id === 100) {
             if (data.success) {
                 this.areas = data.result;
-                this.areas.forEach(a => { this.rooms[a.area_id] = { name: a.name, entities: [], activeCount: 0 }; });
             }
             this.send({ type: "config/device_registry/list", id: 101 });
         } else if (data.id === 101) {
-            if (data.success) this.deviceReg = data.result;
+            if (data.success) {
+                this.deviceReg = data.result;
+            }
             this.send({ type: "config/entity_registry/list", id: 102 });
         } else if (data.id === 102) {
-            if (data.success) this.entityReg = data.result;
+            if (data.success) {
+                this.entityReg = data.result;
+            }
             this.send({ type: "get_states", id: 103 });
         } else if (data.id === 103 && data.success) {
             this.handleInitialStates(data.result);
@@ -236,7 +225,7 @@ class HomaOS {
     }
 
     // ==========================================
-    // State Updates & Classification
+    // Phase 1: Robust Room & Light Mapping
     // ==========================================
     handleInitialStates(statesArray) {
         this.states = {};
@@ -247,7 +236,7 @@ class HomaOS {
             };
         });
 
-        this.classifyEntities();
+        this.buildRooms();
         this.renderCurrentView();
     }
 
@@ -265,88 +254,80 @@ class HomaOS {
         this.updateCardUI(entityId);
 
         const domain = entityId.split('.')[0];
-        if (domain === 'light' && oldState !== newState) {
-            const regEntry = this.entityReg.find(e => e.entity_id === entityId);
-            const areaId = regEntry ? regEntry.area_id : 'unassigned';
-
-            if (this.rooms[areaId]) {
-                if (newState === 'on' && oldState !== 'on') this.rooms[areaId].activeCount++;
-                else if (newState !== 'on' && oldState === 'on') this.rooms[areaId].activeCount = Math.max(0, this.rooms[areaId].activeCount - 1);
-            }
+        if ((domain === 'light' || domain === 'switch') && oldState !== newState) {
+            // Update active count
+            if (newState === 'on' && oldState !== 'on') this.activeLightsCount++;
+            else if (newState !== 'on' && oldState === 'on') this.activeLightsCount = Math.max(0, this.activeLightsCount - 1);
 
             const activeView = document.querySelector('.nav-item.active');
             const viewId = activeView ? activeView.getAttribute('data-view') : '';
-            if (viewId === 'home' || viewId === 'rooms') {
-                this.renderCurrentView();
+            if (viewId === 'home') {
+                this.renderHome();
             }
         }
     }
 
-    // El Motor Inteligente: Agrupa entidades sin hacer hardcoding
-    classifyEntities() {
-        // Reset categories
-        for (let key in this.categories) this.categories[key] = [];
+    buildRooms() {
         this.rooms = {};
-        this.areas.forEach(a => { this.rooms[a.area_id] = { name: a.name, entities: [], activeCount: 0 }; });
+        this.activeLightsCount = 0;
 
-        const self = this;
+        // Create Area Dict for fast lookup
+        const areaDict = {};
+        this.areas.forEach(a => { areaDict[a.area_id] = a.name; });
 
-        Object.keys(this.states).forEach(entityId => {
-            const domain = entityId.split('.')[0];
-            const regEntry = this.entityReg.find(e => e.entity_id === entityId);
-
-            if (regEntry && (regEntry.disabled_by || regEntry.hidden_by)) return; // Skip hidden/disabled
-
-            const getAttr = () => self.states[entityId].a || {};
-            const deviceClass = getAttr().device_class || (regEntry ? regEntry.original_device_class : '') || '';
-            const areaId = (regEntry ? regEntry.area_id : '') || 'unassigned';
-
-            // Build Unified Entity Object
-            const entity = {
-                id: entityId,
-                domain: domain,
-                get state() { return self.states[entityId] ? self.states[entityId].s : ''; },
-                get attributes() { return self.states[entityId] ? self.states[entityId].a || {} : {}; },
-                get name() { return this.attributes.friendly_name || (regEntry ? regEntry.original_name : '') || entityId; },
-                areaId: areaId,
-                deviceClass: deviceClass
-            };
-
-            // 1. Assign to Area/Room
-            if (entity.areaId !== 'unassigned' && this.rooms[entity.areaId]) {
-                this.rooms[entity.areaId].entities.push(entity);
-                if (domain === 'light' && entity.state === 'on') {
-                    this.rooms[entity.areaId].activeCount++;
-                }
-            }
-
-            // 2. Assign to Category (Intelligent logic)
-            if (domain === 'light' || domain === 'switch') {
-                this.categories.lights.push(entity);
-            }
-            else if (domain === 'climate' || (domain === 'sensor' && ['temperature', 'humidity'].includes(deviceClass))) {
-                this.categories.climate.push(entity);
-            }
-            else if (domain === 'sensor' && ['power', 'energy', 'battery', 'current', 'voltage'].includes(deviceClass)) {
-                this.categories.energy.push(entity);
-            }
-            else if (domain === 'alarm_control_panel' || domain === 'lock' ||
-                (domain === 'binary_sensor' && ['motion', 'door', 'window', 'presence'].includes(deviceClass))) {
-                this.categories.security.push(entity);
-            }
-            else if (domain === 'media_player') {
-                this.categories.media.push(entity);
-            }
-            else {
-                this.categories.others.push(entity);
-            }
+        // Device -> Area mapping
+        const deviceToArea = {};
+        this.deviceReg.forEach(d => {
+            if (d.area_id) deviceToArea[d.id] = d.area_id;
         });
 
-        console.log("OS Categorization Complete", this.categories, this.rooms);
+        // Parse entities
+        Object.keys(this.states).forEach(entityId => {
+            const domain = entityId.split('.')[0];
+
+            // Phase 1 Focus: Only lights and switches
+            if (domain !== 'light' && domain !== 'switch') return;
+
+            const stateObj = this.states[entityId];
+            const regEntry = this.entityReg.find(e => e.entity_id === entityId);
+
+            // Skip disabled/hidden entities
+            if (regEntry && (regEntry.disabled_by || regEntry.hidden_by)) return;
+
+            let areaId = 'unassigned';
+
+            // 1. Try Area from Entity
+            if (regEntry && regEntry.area_id) {
+                areaId = regEntry.area_id;
+            }
+            // 2. Try Area from Device
+            else if (regEntry && regEntry.device_id && deviceToArea[regEntry.device_id]) {
+                areaId = deviceToArea[regEntry.device_id];
+            }
+
+            const roomName = areaId !== 'unassigned' && areaDict[areaId] ? areaDict[areaId] : 'Generales (Sin Habitación)';
+            let name = (stateObj.a && stateObj.a.friendly_name) || (regEntry ? regEntry.original_name : '') || entityId;
+
+            if (!this.rooms[roomName]) {
+                this.rooms[roomName] = [];
+            }
+
+            this.rooms[roomName].push({
+                id: entityId,
+                domain: domain,
+                name: name,
+                state: stateObj.s
+            });
+
+            if (stateObj.s === 'on') {
+                this.activeLightsCount++;
+            }
+        });
+        console.log("Phase 1 Room Mapping complete:", this.rooms);
     }
 
     // ==========================================
-    // Dynamic Rendering System
+    // Rendering
     // ==========================================
     renderCurrentView() {
         const activeNav = document.querySelector('.nav-item.active');
@@ -355,139 +336,66 @@ class HomaOS {
 
         if (viewId === 'home') this.renderHome();
         else if (viewId === 'rooms') this.renderRooms();
-        else if (viewId === 'energy') this.renderCategory('energy', 'energy-container');
-        else if (viewId === 'climate') this.renderCategory('climate', 'climate-container');
-        else if (viewId === 'security') this.renderCategory('security', 'security-container');
-        else if (viewId === 'media') this.renderCategory('media', 'media-container');
 
         lucide.createIcons();
     }
 
-    // 1. HOME VIEW (Resumen Inteligente)
     renderHome() {
         const container = document.getElementById('home-summaries');
         if (!container) return;
-
         container.innerHTML = '';
 
-        // Luces Activas
-        const activeLights = this.categories.lights.filter(l => l.domain === 'light' && l.state === 'on');
-        container.appendChild(this.createSummaryCard(
-            'Luces Encendidas',
-            activeLights.length.toString(),
-            'lightbulb',
-            activeLights.length > 0 ? 'var(--accent-yellow)' : 'var(--text-secondary)'
-        ));
-
-        // Clima Activo
-        const activeClimate = this.categories.climate.filter(c => c.domain === 'climate' && c.state !== 'off');
-        container.appendChild(this.createSummaryCard(
-            'Climatización',
-            activeClimate.length > 0 ? 'Activo' : 'Apagado',
-            'thermometer',
-            activeClimate.length > 0 ? 'var(--accent-blue)' : 'var(--text-secondary)'
-        ));
-
-        // Batería Victron (if exists)
-        const batSensor = this.categories.energy.find(e => e.id.includes('victron_battery_soc'));
-        if (batSensor) {
-            container.appendChild(this.createSummaryCard(
-                'Batería Casa',
-                `${batSensor.state}%`,
-                'battery-charging',
-                parseFloat(batSensor.state) > 20 ? 'var(--accent-green)' : 'var(--accent-red)'
-            ));
-        }
-
-        // Alarma
-        const alarm = this.categories.security.find(e => e.domain === 'alarm_control_panel');
-        if (alarm) {
-            container.appendChild(this.createSummaryCard(
-                'Seguridad',
-                alarm.state === 'disarmed' ? 'Desarmada' : 'ARMADA',
-                'shield',
-                alarm.state === 'disarmed' ? 'var(--accent-green)' : 'var(--accent-red)'
-            ));
-        }
-    }
-
-    createSummaryCard(title, value, icon, color) {
         const div = document.createElement('div');
         div.className = 'widget';
         div.style.flexDirection = 'column';
         div.style.alignItems = 'flex-start';
         div.style.padding = '1.5rem';
+
+        const color = this.activeLightsCount > 0 ? 'var(--accent-yellow)' : 'var(--text-secondary)';
         div.innerHTML = `
-            <i data-lucide="${icon}" style="color: ${color}; width: 32px; height: 32px; margin-bottom: 1rem;"></i>
-            <div style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary);">${value}</div>
-            <div style="font-size: 0.9rem; color: var(--text-secondary);">${title}</div>
+            <i data-lucide="lightbulb" style="color: ${color}; width: 32px; height: 32px; margin-bottom: 1rem;"></i>
+            <div style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary);">${this.activeLightsCount}</div>
+            <div style="font-size: 0.9rem; color: var(--text-secondary);">Luces Encendidas</div>
         `;
-        return div;
+
+        container.appendChild(div);
     }
 
-    // 2. ROOMS VIEW
     renderRooms() {
         const container = document.getElementById('rooms-container');
         if (!container) return;
         container.innerHTML = '';
 
-        Object.values(this.rooms).forEach(room => {
-            if (room.entities.length === 0) return;
+        // Sort rooms: Generales last
+        const sortedRoomNames = Object.keys(this.rooms).sort((a, b) => {
+            if (a.includes('Sin Habitación')) return 1;
+            if (b.includes('Sin Habitación')) return -1;
+            return a.localeCompare(b);
+        });
 
-            // Only pick a subset of useful entities for the room card (lights, climate) to avoid clutter
-            const displayEntities = room.entities.filter(e =>
-                ['light', 'switch', 'climate', 'media_player'].includes(e.domain)
-            );
-
-            if (displayEntities.length === 0) return;
+        sortedRoomNames.forEach(roomName => {
+            const lights = this.rooms[roomName];
+            if (lights.length === 0) return;
 
             const roomCard = document.createElement('div');
             roomCard.className = 'room-card';
             roomCard.innerHTML = `
                 <div class="room-header">
                     <i data-lucide="home"></i>
-                    <h3>${room.name}</h3>
-                    <span style="margin-left:auto; font-size:0.8rem; color:var(--text-secondary)">
-                        ${room.activeCount} encendido
-                    </span>
+                    <h3>${roomName}</h3>
                 </div>
                 <div class="room-entities"></div>
             `;
 
             const entitiesContainer = roomCard.querySelector('.room-entities');
-            displayEntities.forEach(e => {
-                const card = this.createEntityCard(e);
+
+            lights.forEach(entity => {
+                const card = this.buildToggleCard(entity);
                 entitiesContainer.appendChild(card);
             });
 
             container.appendChild(roomCard);
         });
-    }
-
-    // Generic Category Renderer
-    renderCategory(categoryName, containerId) {
-        const container = document.getElementById(containerId);
-        if (!container) return;
-        container.innerHTML = '';
-
-        const entities = this.categories[categoryName];
-        if (entities.length === 0) {
-            container.innerHTML = `<div class="loading-state">No hay entidades disponibles de este tipo.</div>`;
-            return;
-        }
-
-        entities.forEach(e => {
-            container.appendChild(this.createEntityCard(e));
-        });
-    }
-
-    // ==========================================
-    // Component Builders
-    // ==========================================
-    createEntityCard(entity) {
-        if (entity.domain === 'light' || entity.domain === 'switch') return this.buildToggleCard(entity);
-        if (entity.domain === 'media_player') return this.buildMediaCard(entity);
-        return this.buildSensorCard(entity); // fallback
     }
 
     buildToggleCard(entity) {
@@ -508,70 +416,6 @@ class HomaOS {
         return clone;
     }
 
-    buildSensorCard(entity) {
-        const tpl = document.getElementById('tpl-card-sensor');
-        const clone = tpl.content.cloneNode(true);
-        const card = clone.querySelector('.entity-card');
-
-        card.id = `card-${entity.id.replace(/\./g, '-')}`;
-
-        let icon = 'activity';
-        if (entity.deviceClass === 'temperature') icon = 'thermometer';
-        else if (entity.deviceClass === 'power') icon = 'zap';
-        else if (entity.deviceClass === 'battery') icon = 'battery';
-        else if (entity.domain === 'alarm_control_panel') icon = 'shield';
-
-        clone.querySelector('.entity-icon i').setAttribute('data-lucide', icon);
-        clone.querySelector('.entity-name').textContent = entity.name;
-
-        const valSpan = clone.querySelector('.entity-value span');
-        valSpan.textContent = isNaN(entity.state) ? entity.state : parseFloat(entity.state).toFixed(1);
-
-        const unit = clone.querySelector('small');
-        unit.textContent = entity.attributes.unit_of_measurement || '';
-
-        // Add colors for alarm states
-        if (entity.domain === 'alarm_control_panel') {
-            if (entity.state !== 'disarmed') {
-                card.style.borderColor = 'rgba(239, 68, 68, 0.5)';
-                card.style.boxShadow = '0 0 15px rgba(239, 68, 68, 0.2)';
-            } else {
-                card.style.borderColor = 'rgba(74, 222, 128, 0.5)';
-            }
-        }
-
-        return clone;
-    }
-
-    buildMediaCard(entity) {
-        const tpl = document.getElementById('tpl-card-media');
-        const clone = tpl.content.cloneNode(true);
-        const card = clone.querySelector('.entity-card');
-
-        card.id = `card-${entity.id.replace(/\./g, '-')}`;
-        clone.querySelector('.entity-name').textContent = entity.name;
-
-        if (entity.state === 'playing' || entity.state === 'paused') {
-            const title = entity.attributes.media_title || entity.state;
-            const artist = entity.attributes.media_artist || '';
-            clone.querySelector('.media-title').textContent = `${title} ${artist ? '- ' + artist : ''}`;
-
-            if (entity.attributes.entity_picture) {
-                const bg = clone.querySelector('.media-artwork');
-                bg.style.display = 'block';
-                bg.style.backgroundImage = `url(${this.haUrl}${entity.attributes.entity_picture})`;
-            }
-        }
-
-        const playBtn = clone.querySelector('.media-play-pause');
-        playBtn.addEventListener('click', () => {
-            this.send({ type: "call_service", domain: "media_player", service: "media_play_pause", target: { entity_id: entity.id } });
-        });
-
-        return clone;
-    }
-
-    // In-place UI Update to avoid full re-render on every state change
     updateCardUI(entityId) {
         const stateObj = this.states[entityId];
         if (!stateObj) return;
@@ -590,10 +434,6 @@ class HomaOS {
 
             if (state === 'on') card.classList.add('state-on');
             else card.classList.remove('state-on');
-        }
-        else if (domain === 'sensor' || domain === 'climate' || domain === 'alarm_control_panel') {
-            const valSpan = card.querySelector('.entity-value span');
-            if (valSpan) valSpan.textContent = isNaN(state) ? state : parseFloat(state).toFixed(1);
         }
     }
 
