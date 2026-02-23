@@ -51,10 +51,6 @@
                         <i data-lucide="shield-check"></i>
                         <span>Seguridad</span>
                     </li>
-                    <li class="nav-item" data-view="media">
-                        <i data-lucide="play-circle"></i>
-                        <span>Multimedia</span>
-                    </li>
                 </ul>
             </nav>
             <div class="user-info"
@@ -70,86 +66,104 @@
             <header>
                 <div class="welcome">
                     <p id="current-date" style="color: var(--text-secondary);"></p>
-                    <h1>Hola, Julio</h1>
+                    <h1 id="view-title">Hola, Julio</h1>
                 </div>
                 <div class="top-actions">
-                    <button class="status-badge" style="background: var(--glass-bg); cursor: pointer;">
-                        <i data-lucide="bell"></i>
+                    <button class="status-badge" style="background: var(--glass-bg); cursor: pointer;"
+                        onclick="localStorage.clear(); location.reload();">
+                        <i data-lucide="log-out"></i>
                     </button>
                 </div>
             </header>
 
-            <section id="main-grid" class="grid">
-                <!-- Victron Energy -->
-                <div class="card energy-card" id="victron-card">
-                    <div class="card-header">
-                        <div class="card-icon"><i data-lucide="battery-charging"></i></div>
-                        <span class="status-badge" id="victron-status">Cargando</span>
-                    </div>
-                    <div class="card-value"><span id="bat-soc">--</span>%</div>
-                    <div class="card-label">Batería Victron</div>
-                    <div class="card-footer"
-                        style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.75rem;">
-                        <span id="bat-volts">--</span> V
-                    </div>
-                </div>
-
-                <!-- Solar Power -->
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon"><i data-lucide="sun"></i></div>
-                    </div>
-                    <div class="card-value"><span id="solar-power">--</span>W</div>
-                    <div class="card-label">Producción Solar</div>
-                </div>
-
-                <!-- Climate -->
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon"><i data-lucide="wind"></i></div>
-                    </div>
-                    <div class="card-value"><span id="current-temp">--</span>°C</div>
-                    <div class="card-label">Aire LG (Temp. Actual)</div>
-                </div>
-
-                <!-- Wallbox -->
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon"><i data-lucide="car"></i></div>
-                        <span id="wallbox-lock" class="status-badge"
-                            style="background: transparent; color: var(--text-secondary);">Cerrado</span>
-                    </div>
-                    <div class="card-value"><span id="charge-power">0.0</span> kW</div>
-                    <div class="card-label">Wallbox Pulsar</div>
-                </div>
-
-                <!-- Security -->
-                <div class="card" id="alarmo-card">
-                    <div class="card-header">
-                        <div class="card-icon"><i data-lucide="shield"></i></div>
-                    </div>
-                    <div class="card-value" style="font-size: 1.5rem;" id="alarmo-state">DESARMADO</div>
-                    <div class="card-label">Alarma Master</div>
-                </div>
-
-                <!-- Person tracking placeholder -->
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon"><i data-lucide="users"></i></div>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                        <div style="display: flex; justify-content: space-between;">
-                            <span>Julio</span>
-                            <span id="person-julio" style="color: var(--text-secondary);">Cargando...</span>
+            <!-- Overview View -->
+            <section id="view-overview" class="view active">
+                <div class="grid">
+                    <div class="card energy-card">
+                        <div class="card-header">
+                            <div class="card-icon"><i data-lucide="battery-charging"></i></div>
+                            <span class="status-badge" id="victron-status">Cargando</span>
                         </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span>Azahar</span>
-                            <span id="person-azahar" style="color: var(--text-secondary);">Cargando...</span>
-                        </div>
+                        <div class="card-value"><span id="bat-soc">--</span>%</div>
+                        <div class="card-label">Batería Victron</div>
                     </div>
-                    <div class="card-label" style="margin-top: 1rem;">Ubicación Familiar</div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon"><i data-lucide="sun"></i></div>
+                        </div>
+                        <div class="card-value"><span id="solar-power">--</span>W</div>
+                        <div class="card-label">Producción Solar</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon"><i data-lucide="wind"></i></div>
+                        </div>
+                        <div class="card-value"><span id="current-temp">--</span>°C</div>
+                        <div class="card-label">Aire LG</div>
+                    </div>
                 </div>
             </section>
+
+            <!-- Energy View -->
+            <section id="view-energy" class="view">
+                <div class="grid">
+                    <div class="card full-width">
+                        <div class="card-header">
+                            <h2>Detalle Victron</h2>
+                        </div>
+                        <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+                            <div class="stat">
+                                <div class="card-value"><span id="bat-volts">--</span>V</div>
+                                <div class="card-label">Voltaje Batería</div>
+                            </div>
+                            <div class="stat">
+                                <div class="card-value"><span id="charge-power">0.0</span>kW</div>
+                                <div class="card-label">Carga Wallbox</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Climate View -->
+            <section id="view-climate" class="view">
+                <div class="grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon"><i data-lucide="thermometer"></i></div>
+                            <h2>Control Aire LG</h2>
+                        </div>
+                        <div class="control-group">
+                            <div class="card-value"><span id="target-temp">--</span>°C</div>
+                            <div class="card-label">Temperatura Objetivo</div>
+                            <!-- Future: add controls for set_temperature -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Security View -->
+            <section id="view-security" class="view">
+                <div class="grid">
+                    <div class="card" id="alarmo-card">
+                        <div class="card-header">
+                            <div class="card-icon"><i data-lucide="shield"></i></div>
+                            <h2 id="alarmo-state">DESARMADO</h2>
+                        </div>
+                        <div class="card-label">Alarma Master</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon"><i data-lucide="users"></i></div>
+                        </div>
+                        <div class="presence-list">
+                            <div class="presence-item"><span>Julio</span><span id="person-julio">--</span></div>
+                            <div class="presence-item"><span>Azahar</span><span id="person-azahar">--</span></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
         </main>
     </div>
 
