@@ -4,187 +4,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HOMA - Premium Dashboard</title>
+    <title>HOMA OS - Smart Home Environment</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
 <body>
+    <!-- Login Overlay -->
     <div id="login-overlay" class="login-overlay">
         <div class="login-card">
-            <h2>HOMA SECURE LOGIN</h2>
-            <p>Conecta tu dashboard usando el acceso oficial de Home Assistant. No necesitas tokens manuales.</p>
+            <div class="logo-large">HOMA</div>
+            <h2>ENVIRONMENT LOGIN</h2>
+            <p>Accede a tu sistema operativo domótico mediante Home Assistant Auth Flow.</p>
             <form id="login-form">
                 <div class="input-group">
-                    <label for="ha-url">Dirección de Home Assistant</label>
-                    <input type="text" id="ha-url" placeholder="https://tu-ha.com"
-                        value="https://julhomecala.priona.com" required>
+                    <label for="ha-url">Servidor Home Assistant</label>
+                    <input type="text" id="ha-url" placeholder="https://..." value="https://julhomecala.priona.com"
+                        required>
                 </div>
-                <button type="submit" class="btn-login">Iniciar Sesión con Home Assistant</button>
+                <button type="submit" class="btn-login">Iniciar Sesión Segura</button>
             </form>
-            <p style="margin-top: 2rem; font-size: 0.7rem; opacity: 0.5;">Te redirigiremos a tu instancia de Home
-                Assistant para identificarte de forma segura.</p>
         </div>
     </div>
 
-    <div class="dashboard">
-        <aside>
-            <div class="logo">HOMA DASHBOARD</div>
-            <nav>
-                <ul class="nav-links">
-                    <li class="nav-item active" data-view="overview">
-                        <i data-lucide="layout-dashboard"></i>
-                        <span>Resumen</span>
+    <!-- Main OS Application -->
+    <div class="homa-app">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">H</div>
+                <div class="brand-text">HOMA OS</div>
+            </div>
+
+            <nav class="main-nav">
+                <ul class="nav-list">
+                    <li class="nav-item active" data-view="home">
+                        <i data-lucide="home"></i>
+                        <span>Vista General</span>
+                    </li>
+                    <li class="nav-item" data-view="rooms">
+                        <i data-lucide="grid-3x3"></i>
+                        <span>Habitaciones</span>
+                    </li>
+                    <li class="nav-item" data-view="climate">
+                        <i data-lucide="thermometer"></i>
+                        <span>Climatización</span>
                     </li>
                     <li class="nav-item" data-view="energy">
                         <i data-lucide="zap"></i>
                         <span>Energía</span>
                     </li>
-                    <li class="nav-item" data-view="climate">
-                        <i data-lucide="thermometer"></i>
-                        <span>Clima</span>
+                    <li class="nav-item" data-view="media">
+                        <i data-lucide="monitor-play"></i>
+                        <span>Multimedia</span>
                     </li>
                     <li class="nav-item" data-view="security">
-                        <i data-lucide="shield-check"></i>
+                        <i data-lucide="shield"></i>
                         <span>Seguridad</span>
-                    </li>
-                    <li class="nav-item" data-view="lights">
-                        <i data-lucide="lightbulb"></i>
-                        <span>Luces</span>
                     </li>
                 </ul>
             </nav>
-            <div class="user-info"
-                style="margin-top: auto; padding-top: 2rem; border-top: 1px solid var(--glass-border);">
-                <div id="connection-status" class="status-badge">
-                    <span class="pulse"></span>
-                    Conectando...
+
+            <div class="sidebar-footer">
+                <div class="status-indicator">
+                    <div id="connection-dot" class="dot connecting"></div>
+                    <span id="connection-text">Conectando...</span>
                 </div>
+                <button class="btn-icon" id="btn-logout" title="Cerrar sesión">
+                    <i data-lucide="log-out"></i>
+                </button>
             </div>
         </aside>
 
-        <main>
-            <header>
-                <div class="welcome">
-                    <p id="current-date" style="color: var(--text-secondary);"></p>
-                    <h1 id="view-title">Hola, Julio</h1>
+        <!-- Main Content Area -->
+        <main class="content-area">
+            <!-- Top Bar -->
+            <header class="top-bar">
+                <div class="top-info">
+                    <h1 id="view-title">Vista General</h1>
+                    <p class="subtitle" id="current-date">Cargando fecha...</p>
                 </div>
-                <div class="top-actions">
-                    <button class="status-badge" style="background: var(--glass-bg); cursor: pointer;"
-                        onclick="localStorage.clear(); location.reload();">
-                        <i data-lucide="log-out"></i>
-                    </button>
+                <div class="top-widgets">
+                    <!-- Global weather/temperature widget -->
+                    <div class="widget weather-widget" id="global-weather" style="display: none;">
+                        <i data-lucide="cloud"></i>
+                        <span id="global-temp">--°C</span>
+                    </div>
                 </div>
             </header>
 
-            <!-- Overview View -->
-            <section id="view-overview" class="view active">
-                <div class="grid">
-                    <div class="card energy-card">
-                        <div class="card-header">
-                            <div class="card-icon"><i data-lucide="battery-charging"></i></div>
-                            <span class="status-badge" id="victron-status">Cargando</span>
-                        </div>
-                        <div class="card-value"><span id="bat-soc">--</span>%</div>
-                        <div class="card-label">Batería Victron</div>
-                    </div>
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-icon"><i data-lucide="sun"></i></div>
-                        </div>
-                        <div class="card-value"><span id="solar-power">--</span>W</div>
-                        <div class="card-label">Producción Solar</div>
-                    </div>
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-icon"><i data-lucide="wind"></i></div>
-                        </div>
-                        <div class="card-value"><span id="current-temp">--</span>°C</div>
-                        <div class="card-label">Aire LG</div>
-                    </div>
-                </div>
-            </section>
+            <!-- Dynamic Views Container -->
+            <div class="views-wrapper">
 
-            <!-- Energy View -->
-            <section id="view-energy" class="view">
-                <div class="grid">
-                    <div class="card full-width">
-                        <div class="card-header">
-                            <h2>Detalle Victron</h2>
-                        </div>
-                        <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
-                            <div class="stat">
-                                <div class="card-value"><span id="bat-volts">--</span>V</div>
-                                <div class="card-label">Voltaje Batería</div>
-                            </div>
-                            <div class="stat">
-                                <div class="card-value"><span id="charge-power">0.0</span>kW</div>
-                                <div class="card-label">Carga Wallbox</div>
-                            </div>
+                <!-- 1. Home / Overview View -->
+                <section id="view-home" class="view-section active">
+                    <div class="home-alert-banner" id="home-alerts" style="display: none;">
+                        <!-- Open doors, active alarms, etc. will go here -->
+                    </div>
+                    <div class="grid-layout overview-grid" id="home-summaries">
+                        <!-- Dynamic summary cards (Lights On, Power usage, Climate status) -->
+                        <div class="loading-state">
+                            <span class="pulse"></span> Procesando entidades de tu hogar...
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
 
-            <!-- Climate View -->
-            <section id="view-climate" class="view">
-                <div class="grid">
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-icon"><i data-lucide="thermometer"></i></div>
-                            <h2>Control Aire LG</h2>
-                        </div>
-                        <div class="control-group">
-                            <div class="card-value"><span id="target-temp">--</span>°C</div>
-                            <div class="card-label">Temperatura Objetivo</div>
-                            <!-- Future: add controls for set_temperature -->
-                        </div>
+                <!-- 2. Rooms View -->
+                <section id="view-rooms" class="view-section">
+                    <div class="grid-layout rooms-grid" id="rooms-container">
+                        <!-- Rooms and all their mixed entities -->
                     </div>
-                </div>
-            </section>
+                </section>
 
-            <!-- Security View -->
-            <section id="view-security" class="view">
-                <div class="grid">
-                    <div class="card" id="alarmo-card">
-                        <div class="card-header">
-                            <div class="card-icon"><i data-lucide="shield"></i></div>
-                            <h2 id="alarmo-state">DESARMADO</h2>
-                        </div>
-                        <div class="card-label">Alarma Master</div>
+                <!-- 3. Climate View -->
+                <section id="view-climate" class="view-section">
+                    <div class="grid-layout" id="climate-container">
+                        <!-- Thermostats and temperature/humidity sensors -->
                     </div>
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-icon"><i data-lucide="users"></i></div>
-                        </div>
-                        <div class="presence-list">
-                            <div class="presence-item"><span>Julio</span><span id="person-julio">--</span></div>
-                            <div class="presence-item"><span>Azahar</span><span id="person-azahar">--</span></div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+                </section>
 
-            <!-- Lights View -->
-            <section id="view-lights" class="view">
-                <div id="lights-container" class="rooms-grid">
-                    <div class="loading-state">
-                        <span class="pulse"></span>
-                        Cargando iluminación por habitaciones...
+                <!-- 4. Energy View -->
+                <section id="view-energy" class="view-section">
+                    <div class="grid-layout" id="energy-container">
+                        <!-- Power sensors, battery, wallbox -->
                     </div>
-                </div>
-            </section>
+                </section>
 
+                <!-- 5. Media View -->
+                <section id="view-media" class="view-section">
+                    <div class="grid-layout media-grid" id="media-container">
+                        <!-- TVs, Speakers -->
+                    </div>
+                </section>
+
+                <!-- 6. Security View -->
+                <section id="view-security" class="view-section">
+                    <div class="grid-layout" id="security-container">
+                        <!-- Alarms, locks, door/window sensors, presence -->
+                    </div>
+                </section>
+
+            </div>
         </main>
     </div>
+
+    <!-- Templates for Dynamic Cards -->
+    <template id="tpl-card-light">
+        <div class="entity-card light-card">
+            <div class="entity-info">
+                <div class="entity-icon"><i data-lucide="lightbulb"></i></div>
+                <div class="entity-text">
+                    <div class="entity-name">Name</div>
+                    <div class="entity-state">Apagado</div>
+                </div>
+            </div>
+            <label class="switch">
+                <input type="checkbox" class="light-toggle">
+                <span class="slider"></span>
+            </label>
+        </div>
+    </template>
+
+    <template id="tpl-card-sensor">
+        <div class="entity-card sensor-card">
+            <div class="entity-info">
+                <div class="entity-icon"><i data-lucide="activity"></i></div>
+                <div class="entity-text">
+                    <div class="entity-name">Name</div>
+                    <div class="entity-value"><span>--</span> <small>unit</small></div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="tpl-card-media">
+        <div class="entity-card media-card">
+            <div class="media-artwork" style="display: none;"></div>
+            <div class="media-content">
+                <div class="entity-icon"><i data-lucide="tv"></i></div>
+                <div class="entity-text">
+                    <div class="entity-name">Name</div>
+                    <div class="media-title">No hay reproducción</div>
+                </div>
+                <div class="media-controls">
+                    <button class="btn-icon media-play-pause"><i data-lucide="power"></i></button>
+                    <!-- Volume/App controls added dynamically -->
+                </div>
+            </div>
+        </div>
+    </template>
 
     <script type="module" src="app.js"></script>
     <script>
         lucide.createIcons();
-        document.getElementById('current-date').innerText = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+
+        // Simple date formatting
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        let dateStr = new Date().toLocaleDateString('es-ES', options);
+        document.getElementById('current-date').innerText = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
     </script>
 </body>
 
