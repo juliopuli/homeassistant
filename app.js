@@ -5,6 +5,7 @@ class HomeAssistantDashboard {
         this.socket = null;
         this.msgId = 1;
         this.entities = {};
+        this.areas = [];
         this.haUrl = localStorage.getItem('ha_url') || CONFIG.HA_URL;
         this.accessToken = localStorage.getItem('ha_access_token');
         this.refreshToken = localStorage.getItem('ha_refresh_token');
@@ -33,7 +34,6 @@ class HomeAssistantDashboard {
                 const view = item.getAttribute('data-view');
                 this.switchView(view);
 
-                // Update active state in UI
                 document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
                 item.classList.add('active');
             });
@@ -49,9 +49,14 @@ class HomeAssistantDashboard {
             overview: 'Resumen General',
             energy: 'Estado de Energía',
             climate: 'Climatización',
-            security: 'Seguridad y Presencia'
+            security: 'Seguridad y Presencia',
+            lights: 'Iluminación por Habitaciones'
         };
         document.getElementById('view-title').innerText = titles[viewId] || 'Homa Dashboard';
+
+        if (viewId === 'lights') {
+            this.renderLights();
+        }
     }
 
     checkAuthCode() {
@@ -144,7 +149,7 @@ class HomeAssistantDashboard {
         } else if (data.type === 'auth_ok') {
             document.getElementById('connection-status').innerHTML = '<i data-lucide="check-circle" style="width:14px"></i> Conectado';
             lucide.createIcons();
-            this.subscribe();
+            this.fetchInitialData();
         } else if (data.type === 'auth_invalid') {
             const success = await this.refreshTokens();
             if (success) this.connect();
@@ -153,6 +158,12 @@ class HomeAssistantDashboard {
             this.updateBulk(data.event.variables);
         } else if (data.type === 'event' && data.event.a) {
             this.updateIncremental(data.event.a);
+        } else if (data.id === 100 && data.success) { // Area Registry
+            this.areas = data.result;
+            this.fetchEntitiesRegistry();
+        } else if (data.id === 101 && data.success) { // Entity Registry
+            this.entityRegistry = data.result;
+            this.subscribe();
         }
     }
 
@@ -161,29 +172,109 @@ class HomeAssistantDashboard {
         this.socket.send(JSON.stringify(msg));
     }
 
+    fetchInitialData() {
+        this.send({ type: "config/area_registry/list", id: 100 });
+    }
+
+    fetchEntitiesRegistry() {
+        this.send({ type: "config/entity_registry/list", id: 101 });
+    }
+
     subscribe() {
         this.send({
-            type: "subscribe_entities",
-            entity_ids: [
-                "sensor.victron_battery_soc", "sensor.victron_battery_voltage", "sensor.victron_solar_power",
-                "climate.aire_lg", "sensor.wallbox_pulsar_max_sn_899342_potencia_de_carga",
-                "lock.wallbox_pulsar_max_sn_899342_cerradura", "alarm_control_panel.alarmo",
-                "person.julio_pulido", "person.azahar_pedroche"
-            ]
+            type: "subscribe_entities"
         });
     }
 
-    updateBulk(variables) { Object.keys(variables).forEach(id => { this.entities[id] = variables[id]; this.renderEntity(id, variables[id]); }); }
-    updateIncremental(changes) { Object.keys(changes).forEach(id => { if (!this.entities[id]) this.entities[id] = {}; Object.assign(this.entities[id], changes[id]); this.renderEntity(id, this.entities[id]); }); }
+    updateBulk(variables) {
+        Object.keys(variables).forEach(id => {
+            this.entities[id] = variables[id];
+            this.renderEntity(id, variables[id]);
+        });
+        if (document.getElementById('view-lights').classList.contains('active')) {
+            this.renderLights();
+        }
+    }
+
+    updateIncremental(changes) {
+        Object.keys(changes).forEach(id => {
+            if (!this.entities[id]) this.entities[id] = {};
+            Object.assign(this.entities[id], changes[id]);
+            this.renderEntity(id, this.entities[id]);
+        });
+        if (document.getElementById('view-lights').classList.contains('active')) {
+            this.renderLights();
+        }
+    }
+
+    renderLights() {
+        const container = document.getElementById('lights-container');
+        if (!container) return;
+
+        // Group entities by area
+        const lightsByArea = {};
+
+        Object.keys(this.entities).forEach(entityId => {
+            if (entityId.startsWith('light.')) {
+                const regEntry = this.entityRegistry?.find(e => e.entity_id === entityId);
+                const areaId = regEntry?.area_id || 'Otros';
+                const area = this.areas.find(a => a.area_id === areaId);
+                const areaName = area ? area.name : areaId;
+
+                if (!lightsByArea[areaName]) lightsByArea[areaName] = [];
+                lightsByArea[areaName].push({
+                    id: entityId,
+                    name: (this.entities[entityId].a && this.entities[entityId].a.friendly_name) || entityId,
+                    state: this.entities[entityId].s
+                });
+            }
+        });
+
+        if (Object.keys(lightsByArea).length === 0) return;
+
+        container.innerHTML = '';
+        Object.keys(lightsByArea).sort().forEach(areaName => {
+            const roomCard = document.createElement('div');
+            roomCard.className = 'room-card';
+            roomCard.innerHTML = `
+                <div class="room-header"><i data-lucide="home"></i> ${areaName}</div>
+                <div class="lights-list">
+                    ${lightsByArea[areaName].map(light => `
+                        <div class="light-item">
+                            <div class="light-info">
+                                <span class="light-name">${light.name}</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" ${light.state === 'on' ? 'checked' : ''} 
+                                    onchange="window.dashboard.toggleLight('${light.id}', this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            container.appendChild(roomCard);
+        });
+        lucide.createIcons();
+    }
+
+    toggleLight(entityId, state) {
+        this.send({
+            type: "call_service",
+            domain: "light",
+            service: state ? "turn_on" : "turn_off",
+            target: { entity_id: entityId }
+        });
+    }
 
     renderEntity(id, data) {
         const state = data.s;
         switch (id) {
-            case 'sensor.victron_battery_soc': document.getElementById('bat-soc').innerText = state; break;
+            case 'sensor.victron_battery_soc': if (document.getElementById('bat-soc')) document.getElementById('bat-soc').innerText = state; break;
             case 'sensor.victron_battery_voltage': if (document.getElementById('bat-volts')) document.getElementById('bat-volts').innerText = state; break;
-            case 'sensor.victron_solar_power': document.getElementById('solar-power').innerText = state; break;
+            case 'sensor.victron_solar_power': if (document.getElementById('solar-power')) document.getElementById('solar-power').innerText = state; break;
             case 'climate.aire_lg':
-                document.getElementById('current-temp').innerText = (data.a && data.a.current_temperature) || '--';
+                if (document.getElementById('current-temp')) document.getElementById('current-temp').innerText = (data.a && data.a.current_temperature) || '--';
                 if (document.getElementById('target-temp')) document.getElementById('target-temp').innerText = (data.a && data.a.temperature) || '--';
                 break;
             case 'sensor.wallbox_pulsar_max_sn_899342_potencia_de_carga': if (document.getElementById('charge-power')) document.getElementById('charge-power').innerText = (parseFloat(state) / 1000).toFixed(1); break;
@@ -194,10 +285,10 @@ class HomeAssistantDashboard {
                     document.getElementById('alarmo-card').style.borderColor = state === 'disarmed' ? 'rgba(74, 222, 128, 0.3)' : 'rgba(239, 68, 68, 0.5)';
                 }
                 break;
-            case 'person.julio_pulido': document.getElementById('person-julio').innerText = state === 'home' ? 'En Casa' : state; break;
-            case 'person.azahar_pedroche': document.getElementById('person-azahar').innerText = state === 'home' ? 'En Casa' : state; break;
+            case 'person.julio_pulido': if (document.getElementById('person-julio')) document.getElementById('person-julio').innerText = state === 'home' ? 'En Casa' : state; break;
+            case 'person.azahar_pedroche': if (document.getElementById('person-azahar')) document.getElementById('person-azahar').innerText = state === 'home' ? 'En Casa' : state; break;
         }
     }
 }
 
-new HomeAssistantDashboard();
+window.dashboard = new HomeAssistantDashboard();
