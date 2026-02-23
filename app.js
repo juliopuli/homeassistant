@@ -3,7 +3,7 @@ import CONFIG from './config.js';
 class HomaOS {
     constructor() {
         this.socket = null;
-        this.msgId = 1;
+        this.msgId = 200;
 
         // Data Stores
         this.states = {};
