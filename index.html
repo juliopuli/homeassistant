@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HOMA - Premium Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <div id="login-overlay" class="login-overlay">
+        <div class="login-card">
+            <h2>HOMA SECURE LOGIN</h2>
+            <p>Introduce tus credenciales para conectar con tu Home Assistant. Estos datos se guardarán solo en este
+                navegador.</p>
+            <form id="login-form">
+                <div class="input-group">
+                    <label for="ha-url">Dirección de Home Assistant</label>
+                    <input type="text" id="ha-url" placeholder="https://tu-ha.com"
+                        value="https://julhomecala.priona.com" required>
+                </div>
+                <div class="input-group">
+                    <label for="token">Token de Acceso de Larga Duración</label>
+                    <input type="password" id="token" placeholder="Tu token JWT..." required>
+                </div>
+                <button type="submit" class="btn-login">Conectar Dashboard</button>
+            </form>
+            <p style="margin-top: 2rem; font-size: 0.7rem; opacity: 0.5;">Tu privacidad es lo primero. Nada sale de tu
+                navegador.</p>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <aside>
+            <div class="logo">HOMA DASHBOARD</div>
+            <nav>
+                <ul class="nav-links">
+                    <li class="nav-item active" data-view="overview">
+                        <i data-lucide="layout-dashboard"></i>
+                        <span>Resumen</span>
+                    </li>
+                    <li class="nav-item" data-view="energy">
+                        <i data-lucide="zap"></i>
+                        <span>Energía</span>
+                    </li>
+                    <li class="nav-item" data-view="climate">
+                        <i data-lucide="thermometer"></i>
+                        <span>Clima</span>
+                    </li>
+                    <li class="nav-item" data-view="security">
+                        <i data-lucide="shield-check"></i>
+                        <span>Seguridad</span>
+                    </li>
+                    <li class="nav-item" data-view="media">
+                        <i data-lucide="play-circle"></i>
+                        <span>Multimedia</span>
+                    </li>
+                </ul>
+            </nav>
+            <div class="user-info"
+                style="margin-top: auto; padding-top: 2rem; border-top: 1px solid var(--glass-border);">
+                <div id="connection-status" class="status-badge">
+                    <span class="pulse"></span>
+                    Conectando...
+                </div>
+            </div>
+        </aside>
+
+        <main>
+            <header>
+                <div class="welcome">
+                    <p id="current-date" style="color: var(--text-secondary);"></p>
+                    <h1>Hola, Julio</h1>
+                </div>
+                <div class="top-actions">
+                    <button class="status-badge" style="background: var(--glass-bg); cursor: pointer;">
+                        <i data-lucide="bell"></i>
+                    </button>
+                </div>
+            </header>
+
+            <section id="main-grid" class="grid">
+                <!-- Victron Energy -->
+                <div class="card energy-card" id="victron-card">
+                    <div class="card-header">
+                        <div class="card-icon"><i data-lucide="battery-charging"></i></div>
+                        <span class="status-badge" id="victron-status">Cargando</span>
+                    </div>
+                    <div class="card-value"><span id="bat-soc">--</span>%</div>
+                    <div class="card-label">Batería Victron</div>
+                    <div class="card-footer"
+                        style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.75rem;">
+                        <span id="bat-volts">--</span> V
+                    </div>
+                </div>
+
+                <!-- Solar Power -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon"><i data-lucide="sun"></i></div>
+                    </div>
+                    <div class="card-value"><span id="solar-power">--</span>W</div>
+                    <div class="card-label">Producción Solar</div>
+                </div>
+
+                <!-- Climate -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon"><i data-lucide="wind"></i></div>
+                    </div>
+                    <div class="card-value"><span id="current-temp">--</span>°C</div>
+                    <div class="card-label">Aire LG (Temp. Actual)</div>
+                </div>
+
+                <!-- Wallbox -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon"><i data-lucide="car"></i></div>
+                        <span id="wallbox-lock" class="status-badge"
+                            style="background: transparent; color: var(--text-secondary);">Cerrado</span>
+                    </div>
+                    <div class="card-value"><span id="charge-power">0.0</span> kW</div>
+                    <div class="card-label">Wallbox Pulsar</div>
+                </div>
+
+                <!-- Security -->
+                <div class="card" id="alarmo-card">
+                    <div class="card-header">
+                        <div class="card-icon"><i data-lucide="shield"></i></div>
+                    </div>
+                    <div class="card-value" style="font-size: 1.5rem;" id="alarmo-state">DESARMADO</div>
+                    <div class="card-label">Alarma Master</div>
+                </div>
+
+                <!-- Person tracking placeholder -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon"><i data-lucide="users"></i></div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Julio</span>
+                            <span id="person-julio" style="color: var(--text-secondary);">Cargando...</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Azahar</span>
+                            <span id="person-azahar" style="color: var(--text-secondary);">Cargando...</span>
+                        </div>
+                    </div>
+                    <div class="card-label" style="margin-top: 1rem;">Ubicación Familiar</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module" src="app.js"></script>
+    <script>
+        lucide.createIcons();
+        document.getElementById('current-date').innerText = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+    </script>
+</body>
+
+</html>
