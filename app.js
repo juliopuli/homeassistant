@@ -490,15 +490,18 @@ class HomaOS {
             return;
         }
 
-        // Bulletproof payload compatible with almost all generations of HA WebSocket API
-        this.send({
+        const msg = {
+            id: this.msgId++,
             type: "call_service",
             domain: domain,
             service: targetState ? "turn_on" : "turn_off",
-            service_data: {
+            target: {
                 entity_id: entityId
             }
-        });
+        };
+
+        console.log("Sending service call:", msg);
+        this.socket.send(JSON.stringify(msg));
     }
 }
 
