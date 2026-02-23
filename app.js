@@ -539,7 +539,6 @@ class HomaOS {
         }
 
         const msg = {
-            id: this.msgId++,
             type: "call_service",
             domain: domain,
             service: targetState ? "turn_on" : "turn_off",
@@ -550,7 +549,7 @@ class HomaOS {
 
         this.showToast(`➜ Enviando: ${msg.service} a ${entityId}`);
         console.log("Sending service call:", msg);
-        this.socket.send(JSON.stringify(msg));
+        this.send(msg); // Use central send() to ensure IDs increment correctly
     }
 }
 
