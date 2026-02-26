@@ -1,4 +1,4 @@
-import CONFIG from './config.js';
+
 
 class HomaOS {
     constructor() {
@@ -131,8 +131,26 @@ class HomaOS {
         if (!url) return;
         localStorage.setItem('ha_url', url);
         this.haUrl = url;
-        const clientId = window.location.origin + window.location.pathname;
-        const redirectUri = window.location.origin + window.location.pathname;
+        const clientId = window.location.origin === "null" ? "https://homa.local" : window.location.origin + window.location.pathname;
+
+        // Home Assistant OAuth requires a valid HTTP/HTTPS redirect URI or a special OOB URI.
+        // If we are on file:// (origin is "null"), we must use a trick or fallback to a hosted page.
+        // Since OOB might require manual copy-paste of the code which isn't implemented in this UI,
+        // we'll try to forge a fake HTTPS redirect URI and tell the user they must host it if this fails,
+        // OR simply rely on the fact that for "file://", we actually need a properly registered redirect.
+        // Actually, for local file, we can just pass the HA url itself as redirect URI to see if it bounces back,
+        // but it won't bounce back to file://.
+
+        // The best approach for a local file app in HA is to use the App's own domain if available, 
+        // but since this is completely local:
+        let redirectUri = window.location.href;
+        if (window.location.protocol === 'file:') {
+            // HA strict OAuth: Cannot redirect to file://
+            // We tell the user via an alert that they need a local server.
+            alert("Error: Home Assistant no permite autenticación OAuth desde un archivo local (file://). Debes abrir este archivo a través de un servidor web local (ej. Live Server de VSCode, o localhost), o alojarlo en un dominio.");
+            return;
+        }
+
         const authUrl = `${url}/auth/authorize?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}`;
         window.location.href = authUrl;
     }
@@ -450,7 +468,8 @@ class HomaOS {
         });
 
         sortedRoomNames.forEach(roomName => {
-            const lights = this.rooms[roomName];
+            // Sort lights alphabetically within the room
+            const lights = this.rooms[roomName].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
             if (lights.length === 0) return;
 
             const roomCard = document.createElement('div');
@@ -474,6 +493,21 @@ class HomaOS {
         });
     }
 
+    getIconForLight(name) {
+        if (!name) return 'lightbulb';
+        const textToParse = name.toLowerCase();
+        if (textToParse.includes('techo') || textToParse.includes('lámpara de techo')) return 'lamp-ceiling';
+        if (textToParse.includes('mesita') || textToParse.includes('escritorio') || textToParse.includes('noche') || textToParse.includes('mesa')) return 'lamp-desk';
+        if (textToParse.includes('pie') || textToParse.includes('suelo')) return 'lamp-floor';
+        if (textToParse.includes('pared') || textToParse.includes('aplique')) return 'lamp-wall';
+        if (textToParse.includes('tira') || textToParse.includes('led')) return 'minus'; // Alternatively, 'pipette' or 'lightbulb' if 'minus' is too generic, but lucide doesn't have a perfect "strip" icon. We will use 'wand-2' or 'sparkles' for leds
+        if (textToParse.includes('espejo') || textToParse.includes('baño')) return 'sparkles';
+        if (textToParse.includes('foco')) return 'flashlight';
+        if (textToParse.includes('exterior') || textToParse.includes('jardín') || textToParse.includes('patio')) return 'sun-dim';
+
+        return 'lightbulb';
+    }
+
     buildToggleCard(entity) {
         const tpl = document.getElementById('tpl-card-light');
         const clone = tpl.content.cloneNode(true);
@@ -484,8 +518,24 @@ class HomaOS {
 
         const nameNode = clone.querySelector('.entity-name');
         const stateNode = clone.querySelector('.entity-state');
+        const iconWrapper = clone.querySelector('.entity-icon');
+
         nameNode.textContent = entity.name;
         stateNode.textContent = entity.state === 'on' ? 'Encendido' : 'Apagado';
+
+        // Dynamically inject the appropriate icon
+        const iconName = this.getIconForLight(entity.name);
+        if (iconWrapper) {
+            iconWrapper.innerHTML = `<i data-lucide="${iconName}"></i>`;
+            // Call lucide on this specific element if possible, or trigger global re-check
+            setTimeout(() => {
+                if (window.lucide) {
+                    window.lucide.createIcons({
+                        root: iconWrapper
+                    });
+                }
+            }, 0);
+        }
 
         const checkbox = clone.querySelector('input');
         checkbox.checked = entity.state === 'on';
