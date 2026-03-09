@@ -49,6 +49,51 @@ const ENTITIES = [
     defaultColor: '#6366f1', // Indigo custom color para el radar
     showIcon: true,
   },
+  {
+    id: 'binary_sensor.movimientonenes',
+    name: 'Movimiento Nenes',
+    type: 'binary_sensor',
+    x: 76.25,     // Cuadro 231
+    y: 13.75,
+    defaultColor: '#6366f1',
+    showIcon: true,
+  },
+  {
+    id: 'binary_sensor.sensorsalon',
+    name: 'Movimiento Salón',
+    type: 'binary_sensor',
+    x: 3.75,      // Cuadro 1082
+    y: 68.75,
+    defaultColor: '#6366f1',
+    showIcon: true,
+  },
+  {
+    id: 'binary_sensor.sensorterraza',
+    name: 'Movimiento Terraza',
+    type: 'binary_sensor',
+    x: 51.25,     // Cuadro 981
+    y: 61.25,
+    defaultColor: '#6366f1',
+    showIcon: true,
+  },
+  {
+    id: 'light.terraza1',
+    name: 'Luz Terraza 1',
+    type: 'light',
+    x: 28.75,     // Cuadro 1052
+    y: 66.25,
+    defaultColor: '#fbbf24',
+    showIcon: true,
+  },
+  {
+    id: 'light.terraza2',
+    name: 'Luz Terraza 2',
+    type: 'light',
+    x: 23.75,     // Cuadro 1130
+    y: 71.25,
+    defaultColor: '#fbbf24',
+    showIcon: true,
+  },
   // ── Añade aquí más dispositivos ──
   // { id: 'switch.enchufe_salon', name: 'Enchufe Salón',  type: 'switch', x:15, y:62, defaultColor:'#60a5fa' },
   // { id: 'light.dormitorio',     name: 'Luz Dormitorio', type: 'light',  x:75, y:60, defaultColor:'#a78bfa' },
