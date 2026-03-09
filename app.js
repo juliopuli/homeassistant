@@ -40,6 +40,15 @@ const ENTITIES = [
     defaultColor: '#fbbf24',
     showIcon: true,
   },
+  {
+    id: 'input_boolean.sensores.pasillo',
+    name: 'Presencia Pasillo',
+    type: 'input_boolean',
+    x: 23.75,     // Cuadro 790 (Columna 10, Fila 20)
+    y: 48.75,
+    defaultColor: '#6366f1', // Indigo custom color para el radar
+    showIcon: true,
+  },
   // ── Añade aquí más dispositivos ──
   // { id: 'switch.enchufe_salon', name: 'Enchufe Salón',  type: 'switch', x:15, y:62, defaultColor:'#60a5fa' },
   // { id: 'light.dormitorio',     name: 'Luz Dormitorio', type: 'light',  x:75, y:60, defaultColor:'#a78bfa' },
@@ -385,7 +394,15 @@ function renderFloorplanEntities() {
     const glowSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     glowSvg.setAttribute('class', 'glow-rings');
     glowSvg.setAttribute('viewBox', '0 0 120 120');
-    glowSvg.innerHTML = isOn ? buildGlowRingsSVG(color, rgb) : '';
+    if (isOn) {
+      if (def.type === 'input_boolean' || def.type === 'binary_sensor') {
+        glowSvg.innerHTML = buildRadarRingsSVG(color, rgb);
+      } else {
+        glowSvg.innerHTML = buildGlowRingsSVG(color, rgb);
+      }
+    } else {
+      glowSvg.innerHTML = '';
+    }
     hotspot.appendChild(glowSvg);
 
     const iconDiv = document.createElement('div');
@@ -426,12 +443,28 @@ function buildGlowRingsSVG(color, rgb) {
     </circle>`;
 }
 
+function buildRadarRingsSVG(color, rgb) {
+  return `
+    <circle cx="60" cy="60" fill="none" stroke="${color}" stroke-width="2" stroke-dasharray="8 6" stroke-linecap="round">
+      <animate attributeName="r" from="15" to="55" dur="1.5s" repeatCount="indefinite" begin="0s"/>
+      <animate attributeName="stroke-opacity" from="0.8" to="0" dur="1.5s" repeatCount="indefinite" begin="0s"/>
+    </circle>
+    <circle cx="60" cy="60" fill="none" stroke="${color}" stroke-width="1.5" stroke-dasharray="12 8" stroke-linecap="round">
+      <animate attributeName="r" from="15" to="55" dur="1.5s" repeatCount="indefinite" begin="0.5s"/>
+      <animate attributeName="stroke-opacity" from="0.6" to="0" dur="1.5s" repeatCount="indefinite" begin="0.5s"/>
+    </circle>
+    <circle cx="60" cy="60" r="12" fill="rgba(${rgb},0.2)" stroke="${color}" stroke-width="1"/>
+  `;
+}
+
 function getEntitySVGIcon(type, isOn) {
   const icons = {
     light: `<svg viewBox="0 0 24 24" fill="none" class="arch-symbol"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.2"/><path d="M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4" stroke="currentColor" stroke-width="1.2"/></svg>`,
     switch: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="5"/><circle cx="${isOn ? 16 : 8}" cy="12" r="3" fill="currentColor"/></svg>`,
     camera: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>`,
     alarm: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>`,
+    input_boolean: `<svg viewBox="0 0 24 24" fill="none" class="arch-symbol"><circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1l2.1-2.1M17 7l2.1-2.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+    binary_sensor: `<svg viewBox="0 0 24 24" fill="none" class="arch-symbol"><circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
   };
   return icons[type] || icons.light;
 }
