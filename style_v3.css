@@ -65,7 +65,8 @@ body {
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
-  background: radial-gradient(ellipse at 30% 20%, #0d1f3c 0%, #050d1a 60%);
+  background: #000;
+  /* Fondo negro puro para que coincida con el plano invertido */
 }
 
 /* ── Top Bar ── */
@@ -206,8 +207,8 @@ body {
   display: inline-block;
   max-width: 100%;
   max-height: 100%;
-  transform: scale(1.9);
-  /* Zoom máximo para recortar bordes de la imagen */
+  transform: scale(1.4);
+  /* Zoom ajustado para que no se corte la casa */
   transform-origin: center center;
   transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
   box-shadow: none;
