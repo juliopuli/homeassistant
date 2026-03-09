@@ -1,0 +1,14 @@
+# Reglas del Proyecto: Home Assistant Dashboard
+
+1. **GitHub Flow Automático:**
+   - **CRÍTICO:** Siempre que modifiques código (HTML, CSS, JS) en este proyecto, **DEBES** hacer un `git add`, `git commit` y `git push origin main` al repositorio.
+   - Es obligatorio que el código modificado se suba inmediatamente a GitHub para que GitHub Pages (HTTPS) refleje los cambios de CORS y OAuth, ya que la aplicación no puede probarse de forma local mediante el protocolo `file://`.
+   - Se debe utilizar la CLI de `git` (comandos `run_command` y similares) después de cualquier set de cambios.
+
+2. **Cero Tokens Locales:**
+   - Queda totalmente prohibido incluir cadenas de base64 como tokens (JWT) harcodeados en los archivos.
+   - El token debe provenir SIEMPRE y ÚNICAMENTE del flujo OAuth implementado y del `sessionStorage` (`ha_access_token`).
+
+3. **Interacciones con el Mapa:**
+   - Las entidades se alinean usando la malla porcentual (Grid 20x20). 
+   - Las luces sin botón visual deben usar `showIcon: true` en la configuración de `ENTITIES` para mapear el SVG de símbolo arquitectural.
