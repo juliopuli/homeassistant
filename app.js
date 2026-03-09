@@ -562,48 +562,13 @@ function getEntitySVGIcon(type, isOn) {
   return icons[type] || icons.light;
 }
 
+
+
 /* ──────────────────────────────────────────────
-   RENDER — Side panel
+   RENDER — Core
    ────────────────────────────────────────────── */
-function renderSidePanel() {
-  const list = document.getElementById('entities-list');
-  list.innerHTML = '';
-  ENTITIES.forEach(def => {
-    const es = entityStates[def.id] || { state: 'unavailable', attributes: {} };
-    const isOn = es.state === 'on';
-    const color = getEntityColor(def, es.state, es.attributes);
-    const rgb = hexToRgb(color);
-
-    const card = document.createElement('div');
-    card.className = `entity-card${isOn ? ' on' : ''}`;
-    card.style.cssText = `--card-color:${color};--card-rgb:${rgb};`;
-    card.innerHTML = `
-      <div class="entity-card-icon">${getEntitySVGIcon(def.type, isOn)}</div>
-      <div class="entity-card-info">
-        <div class="entity-card-name">${def.name}</div>
-        <div class="entity-card-state">${formatState(es)}</div>
-      </div>
-      <button class="entity-toggle" aria-label="Toggle ${def.name}"></button>`;
-    card.addEventListener('click', () => toggleEntity(def));
-    list.appendChild(card);
-  });
-}
-
-function formatState(es) {
-  if (es.state === 'on') {
-    const parts = [];
-    if (es.attributes.brightness !== undefined) parts.push(`${Math.round(es.attributes.brightness / 255 * 100)}% brillo`);
-    if (es.attributes.color_temp_kelvin) parts.push(`${es.attributes.color_temp_kelvin}K`);
-    return parts.length ? parts.join(' · ') : 'Encendida';
-  }
-  if (es.state === 'off') return 'Apagada';
-  if (es.state === 'unavailable') return 'No disponible';
-  return es.state;
-}
-
 function renderAll() {
   renderFloorplanEntities();
-  renderSidePanel();
 }
 
 /* ──────────────────────────────────────────────

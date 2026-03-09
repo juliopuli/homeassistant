@@ -196,23 +196,22 @@ body {
 /* ── Floor plan container ── */
 .floorplan-container {
   position: relative;
-  display: inline-block;
+  width: 100%;
+  height: 100%;
   border-radius: 12px;
-  overflow: visible;
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
-  max-width: 100%;
-  max-height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .floorplan-img {
-  display: block;
-  max-width: 100%;
-  max-height: calc(100vh - 80px);
-  width: auto;
-  height: auto;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
   border-radius: 12px;
   filter: invert(1) brightness(0.55) sepia(0.2) hue-rotate(200deg);
-  /* Gives a cool blue-tinted blueprint look */
+  user-select: none;
 }
 
 /* SVG overlay for entities — same size as image */
@@ -383,111 +382,7 @@ body {
   gap: 0.5rem;
 }
 
-.entity-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 0.85rem 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  cursor: pointer;
-  transition: all 0.25s;
-}
 
-.entity-card:hover {
-  background: var(--surface-2);
-  border-color: rgba(255, 255, 255, 0.14);
-}
-
-.entity-card.on {
-  border-color: rgba(var(--card-rgb, 251, 191, 36), 0.4);
-  background: rgba(var(--card-rgb, 251, 191, 36), 0.06);
-}
-
-.entity-card-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.06);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: all 0.3s;
-}
-
-.entity-card-icon svg {
-  width: 20px;
-  height: 20px;
-  color: var(--text-muted);
-  transition: color 0.3s;
-}
-
-.entity-card.on .entity-card-icon svg {
-  color: var(--card-color, #fbbf24);
-}
-
-.entity-card.on .entity-card-icon {
-  background: rgba(var(--card-rgb, 251, 191, 36), 0.12);
-  box-shadow: 0 0 12px rgba(var(--card-rgb, 251, 191, 36), 0.25);
-}
-
-.entity-card-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.entity-card-name {
-  font-size: 0.83rem;
-  font-weight: 500;
-  color: var(--text);
-}
-
-.entity-card-state {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  margin-top: 0.1rem;
-}
-
-.entity-card.on .entity-card-state {
-  color: var(--card-color, #fbbf24);
-  font-weight: 500;
-}
-
-.entity-toggle {
-  width: 36px;
-  height: 20px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.12);
-  position: relative;
-  flex-shrink: 0;
-  cursor: pointer;
-  transition: background 0.3s;
-  border: none;
-  outline: none;
-}
-
-.entity-toggle::after {
-  content: '';
-  position: absolute;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.5);
-  top: 3px;
-  left: 3px;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.entity-card.on .entity-toggle {
-  background: var(--card-color, #fbbf24);
-}
-
-.entity-card.on .entity-toggle::after {
-  left: 19px;
-  background: #fff;
-}
 
 /* ── Toast notifications ── */
 .toast-container {
@@ -544,7 +439,7 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  display: grid;
+  display: flex;
   grid-template-columns: repeat(40, 1fr);
   grid-template-rows: repeat(40, 1fr);
   pointer-events: none;
