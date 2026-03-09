@@ -428,7 +428,7 @@ function buildGlowRingsSVG(color, rgb) {
 
 function getEntitySVGIcon(type, isOn) {
   const icons = {
-    light: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 00-4 12.87V17a1 1 0 001 1h6a1 1 0 001-1v-2.13A7 7 0 0012 2z"/></svg>`,
+    light: `<svg viewBox="0 0 24 24" fill="none" class="arch-symbol"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.2"/><path d="M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4" stroke="currentColor" stroke-width="1.2"/></svg>`,
     switch: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="5"/><circle cx="${isOn ? 16 : 8}" cy="12" r="3" fill="currentColor"/></svg>`,
     camera: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>`,
     alarm: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>`,
