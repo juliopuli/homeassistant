@@ -26,8 +26,8 @@ const ENTITIES = [
     id: 'light.luzcomedor',
     name: 'Luz Comedor',
     type: 'light',
-    x: 12.5,      // % desde la izquierda — Cuadro 243 (Col 3)
-    y: 62.5,      // % desde arriba — Cuadro 243 (Row 13)
+    x: 13.75,      // Cuadro 966
+    y: 61.25,
     defaultColor: '#fbbf24',
     showIcon: true,
   },
@@ -35,8 +35,8 @@ const ENTITIES = [
     id: 'light.luzsalon',
     name: 'Luz Salón',
     type: 'light',
-    x: 12.5,      // % desde la izquierda — Cuadro 163 (Col 3)
-    y: 42.5,      // % desde arriba — Cuadro 163 (Row 9)
+    x: 13.75,      // Cuadro 646
+    y: 41.25,
     defaultColor: '#fbbf24',
     showIcon: true,
   },
