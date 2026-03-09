@@ -41,11 +41,11 @@ const ENTITIES = [
     showIcon: true,
   },
   {
-    id: 'input_boolean.sensores.pasillo',
+    id: 'input_boolean.sensores_pasillo',
     name: 'Presencia Pasillo',
     type: 'input_boolean',
-    x: 23.75,     // Cuadro 790 (Columna 10, Fila 20)
-    y: 48.75,
+    x: 26.25,     // Cuadro 451
+    y: 28.75,
     defaultColor: '#6366f1', // Indigo custom color para el radar
     showIcon: true,
   },
