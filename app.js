@@ -18,8 +18,8 @@ const ENTITIES = [
     id: 'light.piesalon',
     name: 'Lámpara pie Salón',
     type: 'light',
-    x: 10,       // % desde la izquierda — esquina del sofá (Salón-Comedor)
-    y: 54,      // % desde arriba
+    x: 7.5,      // % desde la izquierda — Cuadro 142 (Col 1)
+    y: 37.5,     // % desde arriba — Cuadro 142 (Row 7)
     defaultColor: '#fbbf24',
   },
   // ── Añade aquí más dispositivos ──
