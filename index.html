@@ -7,7 +7,7 @@
   <title>Mi Casa Inteligente</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style_v3.css" />
   <style>
     .login-bg {
       position: fixed;
@@ -348,7 +348,7 @@
 
     function getRedirectUri() {
       const url = new URL(window.location.href);
-      return url.origin + url.pathname.replace(/\/[^\/]*$/, '/') + 'dashboard.html';
+      return url.origin + url.pathname.replace(/\/[^\/]*$/, '/') + 'dashboard_v2.html';
     }
 
     document.getElementById('btn-login').addEventListener('click', () => {
@@ -368,7 +368,7 @@
 
     // If already logged in, redirect to dashboard
     if (sessionStorage.getItem('ha_access_token')) {
-      window.location.href = 'dashboard.html';
+      window.location.href = 'dashboard_v2.html';
     }
   </script>
 </body>

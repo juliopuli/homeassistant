@@ -12,7 +12,8 @@
 
 :root {
   --font: 'Inter', system-ui, sans-serif;
-  --bg: #050d1a;
+  --bg: #000000;
+  /* Fondo negro puro para que coincida con el plano invertido */
   --surface: rgba(255, 255, 255, 0.04);
   --surface-2: rgba(255, 255, 255, 0.08);
   --border: rgba(255, 255, 255, 0.08);
@@ -184,7 +185,7 @@ body {
   overflow: hidden;
   position: relative;
   padding: 0;
-  /* Maximize space */
+  background: transparent;
 }
 
 /* ── Floor plan area ── */
@@ -203,25 +204,21 @@ body {
 .floorplan-container {
   position: relative;
   display: inline-block;
-  /* Wraps the image tightly */
   max-width: 100%;
   max-height: 100%;
-  transform: scale(1.7);
-  /* Zoom in more to crop large inverted blank margins */
+  transform: scale(1.9);
+  /* Zoom máximo para recortar bordes de la imagen */
   transform-origin: center center;
-  transition: transform 0.3s ease;
+  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
   box-shadow: none;
-  /* Remove any shadows that create black boxes */
 }
 
 .floorplan-img {
   display: block;
   max-width: 100%;
-  max-height: calc(100vh - 100px);
-  /* Constraints it inside viewport minus topbar constraint */
+  max-height: 100vh;
   width: auto;
   height: auto;
-  border-radius: 12px;
   filter: invert(1) brightness(0.55) sepia(0.2) hue-rotate(200deg);
   user-select: none;
 }

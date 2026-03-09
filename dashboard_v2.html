@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard · Mi Casa Inteligente</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="style_v3.css" />
+    <style>
+        /* ── OAuth loading overlay ── */
+        #oauth-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: radial-gradient(ellipse at 30% 40%, #0d1f3c, #050d1a);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+        }
+
+        #oauth-overlay.hidden {
+            display: none;
+        }
+
+        .oauth-spinner {
+            width: 52px;
+            height: 52px;
+            border: 3px solid rgba(99, 102, 241, 0.2);
+            border-top-color: #6366f1;
+            border-radius: 50%;
+            animation: spin 0.9s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .oauth-msg {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .oauth-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 14px;
+            padding: 1.5rem 2rem;
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .oauth-error h3 {
+            color: #f87171;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .oauth-error p {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.82rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .btn-retry {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            color: #a5b4fc;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-retry:hover {
+            background: rgba(99, 102, 241, 0.35);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- OAuth callback loading overlay (shown while exchanging code for token) -->
+    <div id="oauth-overlay">
+        <div class="oauth-spinner"></div>
+        <span class="oauth-msg" id="oauth-msg">Verificando sesión…</span>
+    </div>
+
+    <!-- Dashboard (hidden until auth OK) -->
+    <div class="dashboard-layout" id="dashboard-root" style="display:none;">
+
+        <!-- TOP BAR -->
+        <header class="topbar">
+            <a href="index.html" class="topbar-brand">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
+                    <path d="M9 21V12h6v9" />
+                </svg>
+                Mi Casa Inteligente
+            </a>
+            <div class="topbar-right">
+                <div class="conn-badge" id="conn-badge">
+                    <div class="conn-dot"></div>
+                    <span id="conn-text">Conectando…</span>
+                </div>
+                <a href="https://julhomecala.priona.com" target="_blank" class="btn-ha" title="Abrir Home Assistant">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+                        <polyline points="15 3 21 3 21 9" />
+                        <line x1="10" y1="14" x2="21" y2="3" />
+                    </svg>
+                    Home Assistant
+                </a>
+                <button class="btn-ha" id="btn-grid" title="Mostrar/Ocultar Cuadrícula">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                        <line x1="3" y1="9" x2="21" y2="9" />
+                        <line x1="3" y1="15" x2="21" y2="15" />
+                        <line x1="9" y1="3" x2="9" y2="21" />
+                        <line x1="15" y1="3" x2="15" y2="21" />
+                    </svg>
+                    Cuadrícula
+                </button>
+                <button class="btn-ha" id="btn-logout" title="Cerrar sesión">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                    Salir
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <!-- Floor plan -->
+            <div class="floorplan-area">
+                <div class="floorplan-container" id="fp-container">
+                    <img id="fp-img" class="floorplan-img" src="floorplan.png" alt="Plano de la casa"
+                        draggable="false" />
+                    <!-- Parche para ocultar texto original -->
+                    <div class="text-patch"
+                        style="left: 66.25%; top: 18.5%; transform: translate(-50%, -50%); width: 12%; height: 3%;">
+                    </div>
+                    <!-- Nuevo texto desplazado -->
+                    <div class="new-label" style="left: 66.25%; top: 14%;">HABITACIÓN NENES</div>
+                    <div id="fp-entities"></div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /.dashboard-layout -->
+
+    <!-- Toast container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="app_v3.js"></script>
+</body>
+
+</html>
