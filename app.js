@@ -130,6 +130,15 @@ const ENTITIES = [
     defaultColor: '#fbbf24',
     showIcon: true,
   },
+  {
+    id: 'light.luznenes',
+    name: 'Luz Nenes',
+    type: 'light',
+    x: 66.25,     // Cuadro 307
+    y: 18.75,
+    defaultColor: '#fbbf24',
+    showIcon: true,
+  },
   // ── Añade aquí más dispositivos ──
   // { id: 'switch.enchufe_salon', name: 'Enchufe Salón',  type: 'switch', x:15, y:62, defaultColor:'#60a5fa' },
   // { id: 'light.dormitorio',     name: 'Luz Dormitorio', type: 'light',  x:75, y:60, defaultColor:'#a78bfa' },

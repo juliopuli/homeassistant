@@ -230,6 +230,27 @@ body {
   cursor: pointer;
 }
 
+/* ── Text replacer patch ── */
+.text-patch {
+  position: absolute;
+  background: #fff;
+  /* When filtered, matches the blueprint dark blue exact shade */
+  filter: invert(1) brightness(0.55) sepia(0.2) hue-rotate(200deg);
+  z-index: 1;
+}
+
+.new-label {
+  position: absolute;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  z-index: 2;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
 /* ── Entity hotspot ── */
 .entity-hotspot {
   position: absolute;
