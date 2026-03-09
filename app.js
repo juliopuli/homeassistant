@@ -513,16 +513,15 @@ function setupGrid() {
   grid.className = 'grid-overlay';
   fpContainer.appendChild(grid);
 
-  for (let i = 0; i < 400; i++) {
+  for (let i = 0; i < 1600; i++) {
     const cell = document.createElement('div');
     cell.className = 'grid-cell';
-    cell.textContent = i + 1;
 
-    // Calcula el centro de cada celda de 5% x 5%
-    const row = Math.floor(i / 20);
-    const col = i % 20;
-    const x = (col * 5) + 2.5;
-    const y = (row * 5) + 2.5;
+    // Calcula el centro de cada celda de 2.5% x 2.5%
+    const row = Math.floor(i / 40);
+    const col = i % 40;
+    const x = parseFloat(((col * 2.5) + 1.25).toFixed(2));
+    const y = parseFloat(((row * 2.5) + 1.25).toFixed(2));
 
     cell.title = `Cuadro ${i + 1}\\nx: ${x}%, y: ${y}%`;
     cell.addEventListener('click', () => {

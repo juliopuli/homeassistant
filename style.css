@@ -524,8 +524,8 @@ body {
   width: 100%;
   height: 100%;
   display: grid;
-  grid-template-columns: repeat(20, 1fr);
-  grid-template-rows: repeat(20, 1fr);
+  grid-template-columns: repeat(40, 1fr);
+  grid-template-rows: repeat(40, 1fr);
   pointer-events: none;
   z-index: 50;
   opacity: 0;
@@ -538,19 +538,18 @@ body {
 }
 
 .grid-cell {
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.4);
-  background: rgba(0, 0, 0, 0.3);
-  transition: background 0.2s;
+  font-size: 0.5rem;
+  color: transparent;
+  background: rgba(0, 0, 0, 0.2);
+  transition: all 0.2s;
   cursor: crosshair;
 }
 
 .grid-cell:hover {
-  background: rgba(99, 102, 241, 0.4);
-  color: #fff;
-  border-color: rgba(99, 102, 241, 0.8);
+  background: rgba(99, 102, 241, 0.5);
+  border-color: rgba(99, 102, 241, 0.9);
 }
