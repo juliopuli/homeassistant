@@ -483,6 +483,43 @@ function setupLogout() {
 }
 
 /* ──────────────────────────────────────────────
+   GRID OVERLAY
+   ────────────────────────────────────────────── */
+function setupGrid() {
+  const btn = document.getElementById('btn-grid');
+  const fpContainer = document.getElementById('fp-container');
+  if (!btn || !fpContainer) return;
+
+  const grid = document.createElement('div');
+  grid.id = 'fp-grid';
+  grid.className = 'grid-overlay';
+  fpContainer.appendChild(grid);
+
+  for (let i = 0; i < 400; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'grid-cell';
+    cell.textContent = i + 1;
+
+    // Calcula el centro de cada celda de 5% x 5%
+    const row = Math.floor(i / 20);
+    const col = i % 20;
+    const x = (col * 5) + 2.5;
+    const y = (row * 5) + 2.5;
+
+    cell.title = `Cuadro ${i + 1}\\nx: ${x}%, y: ${y}%`;
+    cell.addEventListener('click', () => {
+      showToast(`Cuadro ${i + 1} → x: ${x}, y: ${y}`, '📍');
+      console.log(`Cuadro ${i + 1}: x=${x}, y=${y}`);
+    });
+    grid.appendChild(cell);
+  }
+
+  btn.addEventListener('click', () => {
+    grid.classList.toggle('active');
+  });
+}
+
+/* ──────────────────────────────────────────────
    INIT
    ────────────────────────────────────────────── */
 async function init() {
@@ -490,6 +527,7 @@ async function init() {
   if (!authed) return;
 
   setupLogout();
+  setupGrid();
 
   const img = document.getElementById('fp-img');
   const start = () => fetchAllStates().then(() => connectWebSocket());
