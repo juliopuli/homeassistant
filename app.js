@@ -94,6 +94,42 @@ const ENTITIES = [
     defaultColor: '#fbbf24',
     showIcon: true,
   },
+  {
+    id: 'light.pasillo1',
+    name: 'Luz Pasillo 1',
+    type: 'light',
+    x: 16.25,     // Cuadro 447
+    y: 28.75,
+    defaultColor: '#fbbf24',
+    showIcon: true,
+  },
+  {
+    id: 'light.foco1',
+    name: 'Foco Pista 1',
+    type: 'light_track_left',
+    x: 43.75,     // Cuadro 498
+    y: 31.25,
+    defaultColor: '#fbbf24',
+    showIcon: true,
+  },
+  {
+    id: 'light.extended_color_light_1',
+    name: 'Foco Pista Centro',
+    type: 'light_track_center',
+    x: 46.25,     // Cuadro 499
+    y: 31.25,
+    defaultColor: '#fbbf24',
+    showIcon: true,
+  },
+  {
+    id: 'light.foco3',
+    name: 'Foco Pista 3',
+    type: 'light_track_right',
+    x: 48.75,     // Cuadro 500
+    y: 31.25,
+    defaultColor: '#fbbf24',
+    showIcon: true,
+  },
   // ── Añade aquí más dispositivos ──
   // { id: 'switch.enchufe_salon', name: 'Enchufe Salón',  type: 'switch', x:15, y:62, defaultColor:'#60a5fa' },
   // { id: 'light.dormitorio',     name: 'Luz Dormitorio', type: 'light',  x:75, y:60, defaultColor:'#a78bfa' },
@@ -510,6 +546,9 @@ function getEntitySVGIcon(type, isOn) {
     alarm: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>`,
     input_boolean: `<svg viewBox="0 0 24 24" fill="none" class="arch-symbol"><circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1l2.1-2.1M17 7l2.1-2.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
     binary_sensor: `<svg viewBox="0 0 24 24" fill="none" class="arch-symbol"><circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+    light_track_left: `<svg viewBox="0 0 24 24" fill="none" class="arch-symbol"><path d="M12 6v12M12 6h12M12 18h12M6 12a4 4 0 108 0 4 4 0 10-8 0" stroke="currentColor" stroke-width="1.2"/></svg>`,
+    light_track_center: `<svg viewBox="0 0 24 24" fill="none" class="arch-symbol"><path d="M0 6h24M0 18h24M8 12a4 4 0 108 0 4 4 0 10-8 0" stroke="currentColor" stroke-width="1.2"/></svg>`,
+    light_track_right: `<svg viewBox="0 0 24 24" fill="none" class="arch-symbol"><path d="M12 6v12M12 6H0M12 18H0M10 12a4 4 0 108 0 4 4 0 10-8 0" stroke="currentColor" stroke-width="1.2"/></svg>`,
   };
   return icons[type] || icons.light;
 }
