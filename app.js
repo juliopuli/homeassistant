@@ -22,6 +22,24 @@ const ENTITIES = [
     y: 37.5,     // % desde arriba — Cuadro 142 (Row 7)
     defaultColor: '#fbbf24',
   },
+  {
+    id: 'light.luzcomedor',
+    name: 'Luz Comedor',
+    type: 'light',
+    x: 12.5,      // % desde la izquierda — Cuadro 243 (Col 3)
+    y: 62.5,      // % desde arriba — Cuadro 243 (Row 13)
+    defaultColor: '#fbbf24',
+    showIcon: true,
+  },
+  {
+    id: 'light.luzsalon',
+    name: 'Luz Salón',
+    type: 'light',
+    x: 12.5,      // % desde la izquierda — Cuadro 163 (Col 3)
+    y: 42.5,      // % desde arriba — Cuadro 163 (Row 9)
+    defaultColor: '#fbbf24',
+    showIcon: true,
+  },
   // ── Añade aquí más dispositivos ──
   // { id: 'switch.enchufe_salon', name: 'Enchufe Salón',  type: 'switch', x:15, y:62, defaultColor:'#60a5fa' },
   // { id: 'light.dormitorio',     name: 'Luz Dormitorio', type: 'light',  x:75, y:60, defaultColor:'#a78bfa' },
@@ -371,7 +389,7 @@ function renderFloorplanEntities() {
     hotspot.appendChild(glowSvg);
 
     const iconDiv = document.createElement('div');
-    iconDiv.className = 'entity-icon';
+    iconDiv.className = `entity-icon${def.showIcon ? ' show-icon' : ''}`;
     iconDiv.innerHTML = getEntitySVGIcon(def.type, isOn);
     hotspot.appendChild(iconDiv);
 

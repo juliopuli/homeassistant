@@ -257,11 +257,26 @@ body {
   z-index: 2;
 }
 
+/* Hide the bulb icon completely by default (for hidden hotspots) */
 .entity-icon svg {
   display: none;
 }
 
-/* Hide the bulb icon completely */
+/* Show icon if the entity has the show-icon flag */
+.entity-icon.show-icon svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+  color: rgba(255, 255, 255, 0.4);
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.8));
+  transition: all 0.4s ease;
+}
+
+/* When ON, tint the visible icon with the light color and add a soft glow */
+.entity-hotspot.on .entity-icon.show-icon svg {
+  color: var(--light-color, #fbbf24);
+  filter: drop-shadow(0 0 6px var(--light-color, #fbbf24));
+}
 
 /* Label on floor plan (hidden as requested) */
 .entity-label {
