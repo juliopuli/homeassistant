@@ -68,7 +68,7 @@ const ENTITIES = [
     showIcon: true,
   },
   {
-    id: 'binary_sensor.sensorterraza',
+    id: 'binary_sensor.terraza',
     name: 'Movimiento Terraza',
     type: 'binary_sensor',
     x: 51.25,     // Cuadro 981
