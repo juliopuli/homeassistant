@@ -278,8 +278,7 @@ body {
   z-index: 1;
   width: 120px;
   height: 120px;
-  margin-top: -18px;
-  margin-left: -18px;
+  /* Removed negative margins so it centers properly with the transform */
   opacity: 0;
   transition: opacity 0.5s;
 }
@@ -501,19 +500,42 @@ body {
     transform: translateY(-8px) scale(0.95);
   }
 }
+
 /* ── Positioning Grid ── */
 .grid-overlay {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  display: grid; grid-template-columns: repeat(20, 1fr); grid-template-rows: repeat(20, 1fr);
-  pointer-events: none; z-index: 50; opacity: 0; transition: opacity 0.3s;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(20, 1fr);
+  grid-template-rows: repeat(20, 1fr);
+  pointer-events: none;
+  z-index: 50;
+  opacity: 0;
+  transition: opacity 0.3s;
 }
-.grid-overlay.active { opacity: 1; pointer-events: all; }
+
+.grid-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
 .grid-cell {
   border: 1px solid rgba(255, 255, 255, 0.15);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.65rem; color: rgba(255, 255, 255, 0.4);
-  background: rgba(0, 0, 0, 0.3); transition: background 0.2s; cursor: crosshair;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.4);
+  background: rgba(0, 0, 0, 0.3);
+  transition: background 0.2s;
+  cursor: crosshair;
 }
+
 .grid-cell:hover {
-  background: rgba(99, 102, 241, 0.4); color: #fff; border-color: rgba(99, 102, 241, 0.8);
+  background: rgba(99, 102, 241, 0.4);
+  color: #fff;
+  border-color: rgba(99, 102, 241, 0.8);
 }
