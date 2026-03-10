@@ -111,7 +111,7 @@ body {
     fill: none;
     /* Revert to line only for a cleaner look */
     opacity: 1;
-    stroke-width: 0.5;
+    stroke-width: 0.6;
     /* Balanced thickness for the rodapié */
     stroke-linecap: round;
     stroke-linejoin: round;
