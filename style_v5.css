@@ -109,11 +109,13 @@ body {
 .led-polygon.active {
     stroke: var(--led-glow-color, var(--led-warm));
     opacity: 1;
-    stroke-width: 0.6;
-    /* Thinner rodapié */
-    /* Softer, more realistic glow layers */
+    stroke-width: 0.3;
+    /* Ultra-thin path */
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    /* Soft, multi-layered "light shadow" effect */
     filter:
-        drop-shadow(0 0 1px var(--led-glow-color, var(--led-warm))) drop-shadow(0 0 4px var(--led-glow-color, var(--led-warm))) drop-shadow(0 0 8px var(--led-glow-color, var(--led-warm)));
+        drop-shadow(0 0 1px var(--led-glow-color, var(--led-warm))) drop-shadow(0 0 3px var(--led-glow-color, var(--led-warm))) drop-shadow(0 0 6px var(--led-glow-color, var(--led-warm)));
 }
 
 /* ── Hit Areas (Transparent Interaction) ── */

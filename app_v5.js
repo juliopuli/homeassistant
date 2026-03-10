@@ -130,16 +130,18 @@ function initDynamicLayers() {
         const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
         g.id = `led-cells-${eid}`;
         g.classList.add('led-polygon'); // Re-use LED glow styles
-        cells.forEach(cid => {
-            const x = (cid % 64) * (100 / 64);
-            const y = Math.floor(cid / 64) * (100 / 64);
-            const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-            rect.setAttribute('x', x);
-            rect.setAttribute('y', y);
-            rect.setAttribute('width', 100 / 64);
-            rect.setAttribute('height', 100 / 64);
-            g.appendChild(rect);
-        });
+
+        // Create a continuous polyline instead of separate rects for a seamless look
+        const polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+        const points = cells.map(cid => {
+            const x = (cid % 64) * (100 / 64) + (100 / 128); // Cell center X
+            const y = Math.floor(cid / 64) * (100 / 64) + (100 / 128); // Cell center Y
+            return `${x},${y}`;
+        }).join(' ');
+
+        polyline.setAttribute('points', points);
+        polyline.setAttribute('fill', 'none');
+        g.appendChild(polyline);
         cellGroup.appendChild(g);
     });
 }
