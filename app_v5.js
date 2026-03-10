@@ -132,18 +132,48 @@ function initDynamicLayers() {
         g.id = `led-cells-${eid}`;
         g.classList.add('led-polygon'); // Re-use LED styles
 
-        // Individual rectangles to respect the user's gaps (doors, etc)
-        cells.forEach(cid => {
-            const x = (cid % 64) * (100 / 64);
-            const y = Math.floor(cid / 64) * (100 / 64);
-            const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-            rect.setAttribute('x', x);
-            rect.setAttribute('y', y);
-            rect.setAttribute('width', (100 / 64) + 0.1); // Slight overlap for continuity
-            rect.setAttribute('height', (100 / 64) + 0.1);
-            rect.setAttribute('rx', '0.1'); // Slightly rounded for realism
-            g.appendChild(rect);
+        // Group cells into continuous segments based on adjacency
+        const segments = [];
+        let currentSegment = [];
+
+        for (let i = 0; i < cells.length; i++) {
+            const current = cells[i];
+            const previous = cells[i - 1];
+
+            if (previous !== undefined) {
+                const r1 = Math.floor(current / 64), c1 = current % 64;
+                const r2 = Math.floor(previous / 64), c2 = previous % 64;
+                // Manhattan distance of 1 means they are immediate neighbors (up, down, left, right)
+                const isAdjacent = Math.abs(r1 - r2) + Math.abs(c1 - c2) === 1;
+
+                if (!isAdjacent) {
+                    segments.push(currentSegment);
+                    currentSegment = [];
+                }
+            }
+            currentSegment.push(current);
+        }
+        if (currentSegment.length > 0) segments.push(currentSegment);
+
+        // Render each contiguous segment as a polyline
+        segments.forEach(seg => {
+            if (seg.length === 0) return;
+            const polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+            const points = seg.map(cid => {
+                const x = (cid % 64) * (100 / 64) + (100 / 128); // Cell center X
+                const y = Math.floor(cid / 64) * (100 / 64) + (100 / 128); // Cell center Y
+                return `${x},${y}`;
+            }).join(' ');
+
+            polyline.setAttribute('points', points);
+            polyline.setAttribute('fill', 'none');
+            // If only one cell, make it a dot-like stroke
+            if (seg.length === 1) {
+                polyline.setAttribute('stroke-linecap', 'round');
+            }
+            g.appendChild(polyline);
         });
+
         cellGroup.appendChild(g);
     });
 }
