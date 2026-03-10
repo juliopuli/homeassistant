@@ -412,21 +412,34 @@ async function fetchAllStates() {
   renderAll();
 }
 
+let clickTimeout = null;
+
 async function toggleEntity(def) {
-  const current = entityStates[def.id];
-  const isOn = current && current.state === 'on';
-  const service = isOn ? 'turn_off' : 'turn_on';
-  try {
-    const res = await callService(def.type, service, { entity_id: def.id });
-    if (!res) throw new Error('No response');
-    const newState = isOn ? 'off' : 'on';
-    showToast(`${def.name} → ${newState === 'on' ? 'Encendida 🔆' : 'Apagada'}`, def.type === 'light' ? '💡' : '🔌');
-    entityStates[def.id] = { state: newState, attributes: current ? current.attributes : {} };
-    renderAll();
-  } catch (e) {
-    console.error('Toggle error:', e);
-    showToast('Error al cambiar el estado', '⚠️');
+  if (clickTimeout) {
+    clearTimeout(clickTimeout);
+    clickTimeout = null;
+    return; // Let dblclick handle it
   }
+
+  clickTimeout = setTimeout(async () => {
+    const current = entityStates[def.id];
+    const isOn = current && current.state === 'on';
+    const service = isOn ? 'turn_off' : 'turn_on';
+    try {
+      // FIX: Use 'light' domain if the type starts with 'light', otherwise use the type
+      const domain = def.type.startsWith('light') ? 'light' : def.type;
+      const res = await callService(domain, service, { entity_id: def.id });
+      if (!res) throw new Error('No response');
+      const newState = isOn ? 'off' : 'on';
+      showToast(`${def.name} → ${newState === 'on' ? 'Encendida 🔆' : 'Apagada'}`, domain === 'light' ? '💡' : '🔌');
+      entityStates[def.id] = { state: newState, attributes: current ? current.attributes : {} };
+      renderAll();
+    } catch (e) {
+      console.error('Toggle error:', e);
+      showToast('Error al cambiar el estado', '⚠️');
+    }
+    clickTimeout = null;
+  }, 250);
 }
 
 async function callService(domain, service, serviceData) {
@@ -544,7 +557,12 @@ function renderFloorplanEntities() {
 
     hotspot.addEventListener('click', () => toggleEntity(def));
     hotspot.addEventListener('dblclick', (e) => {
+      if (clickTimeout) {
+        clearTimeout(clickTimeout);
+        clickTimeout = null;
+      }
       e.preventDefault();
+      e.stopPropagation();
       showControlPanel(def.id);
     });
     container.appendChild(hotspot);
@@ -582,10 +600,14 @@ function closeControlPanel() {
 
 function renderCPContent(entityId) {
   const stateObj = entityStates[entityId];
+  if (!stateObj) return; // Silent bail if no state found yet
+
   const contentEl = document.getElementById('cp-content');
   contentEl.innerHTML = '';
 
   const isOn = stateObj.state === 'on';
+  const def = ENTITIES.find(e => e.id === entityId);
+  const domain = def.type.startsWith('light') ? 'light' : def.type;
 
   // 1. Power Toggle (only for controllable types)
   const controllable = ['light', 'switch', 'input_boolean'].includes(def.type);
@@ -636,7 +658,7 @@ function renderCPContent(entityId) {
 
     input.onchange = (e) => {
       const val = parseInt(e.target.value);
-      callService('light', 'turn_on', {
+      callService(domain, 'turn_on', {
         entity_id: entityId,
         brightness_pct: val
       });
@@ -673,7 +695,7 @@ function renderCPContent(entityId) {
       dot.className = 'color-dot';
       dot.style.background = `rgb(${c.rgb.join(',')})`;
       dot.onclick = () => {
-        callService('light', 'turn_on', {
+        callService(domain, 'turn_on', {
           entity_id: entityId,
           rgb_color: c.rgb
         });
