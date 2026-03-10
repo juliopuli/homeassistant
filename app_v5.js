@@ -16,6 +16,11 @@ const ZONES = [
     { id: 'zone-dormitorio', entity_ids: ['light.luz_dormitorio'], name: 'Dormitorio Principal' }
 ];
 
+// Precision Grid Mapping (64x64)
+const ENTITY_LED_CELLS = {
+    'light.piesalon': [1410, 1411, 1412, 1413, 1414, 1474, 1538, 1602]
+};
+
 const ALARM_ENTITIES = [
     'alarm_control_panel.alarmaaqara',
     'alarm_control_panel.alarmo',
@@ -97,7 +102,7 @@ function initDynamicLayers() {
         const points = hitbox.getAttribute('points');
         const zone = ZONES.find(z => z.id === id);
 
-        // Create the LED layer for this room
+        // Create the Room LED layer for fallback (if no specific cells are defined)
         const ledPoly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
         ledPoly.id = `led-${id}`;
         ledPoly.setAttribute('class', 'led-polygon');
@@ -108,30 +113,62 @@ function initDynamicLayers() {
         hitbox.onclick = (e) => {
             console.log('[UI Click] Zone:', id);
             if (!zone) return;
-            // Toggle logic: if any entity in the zone is ON, turn all OFF. Otherwise turn all ON.
             const isAnyOn = zone.entity_ids.some(eid => entityStates[eid]?.state === 'on');
             const service = isAnyOn ? 'turn_off' : 'turn_on';
             zone.entity_ids.forEach(eid => callService('light', service, { entity_id: eid }));
             showToast(`${zone.name} → ${isAnyOn ? 'Apagando' : 'Encendiendo ✨'}`);
         };
     });
+
+    // Create Cells Overlay for precision entities
+    const cellGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    cellGroup.id = 'precision-cells';
+    ledContainer.appendChild(cellGroup);
+
+    Object.keys(ENTITY_LED_CELLS).forEach(eid => {
+        const cells = ENTITY_LED_CELLS[eid];
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        g.id = `led-cells-${eid}`;
+        g.classList.add('led-polygon'); // Re-use LED glow styles
+        cells.forEach(cid => {
+            const x = (cid % 64) * (100 / 64);
+            const y = Math.floor(cid / 64) * (100 / 64);
+            const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            rect.setAttribute('x', x);
+            rect.setAttribute('y', y);
+            rect.setAttribute('width', 100 / 64);
+            rect.setAttribute('height', 100 / 64);
+            g.appendChild(rect);
+        });
+        cellGroup.appendChild(g);
+    });
 }
 
 function renderAll() {
+    // Room LED polygons (fallback)
     ZONES.forEach(z => {
         const isAnyOn = z.entity_ids.some(eid => entityStates[eid]?.state === 'on');
         const ledPoly = document.getElementById(`led-${z.id}`);
         if (ledPoly) {
-            ledPoly.classList.toggle('active', isAnyOn);
+            // Hide polygon if at least one entity in room has precise cells defined
+            const hasPreciseCells = z.entity_ids.some(eid => ENTITY_LED_CELLS[eid]);
+            ledPoly.classList.toggle('active', isAnyOn && !hasPreciseCells);
+        }
+    });
 
-            // Bonus: if the light has a color, apply it to the LED glow
-            const firstOnEntity = z.entity_ids.find(eid => entityStates[eid]?.state === 'on');
-            const attrs = entityStates[firstOnEntity]?.attributes;
+    // Precise Cell LEDS
+    Object.keys(ENTITY_LED_CELLS).forEach(eid => {
+        const isOn = entityStates[eid]?.state === 'on';
+        const ledG = document.getElementById(`led-cells-${eid}`);
+        if (ledG) {
+            ledG.classList.toggle('active', isOn);
+            // Apply color if available
+            const attrs = entityStates[eid]?.attributes;
             if (attrs?.rgb_color) {
                 const [r, g, b] = attrs.rgb_color;
-                ledPoly.style.setProperty('--led-glow-color', `rgba(${r}, ${g}, ${b}, 0.8)`);
+                ledG.style.setProperty('--led-glow-color', `rgba(${r}, ${g}, ${b}, 0.8)`);
             } else {
-                ledPoly.style.removeProperty('--led-glow-color');
+                ledG.style.removeProperty('--led-glow-color');
             }
         }
     });
