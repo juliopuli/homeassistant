@@ -618,7 +618,7 @@ body {
   }
 
   100% {
-    transform: translate(-50%, -50%) scale(2.5);
+    transform: translate(-50%, -50%) scale(3.5);
     opacity: 0;
   }
 }
@@ -633,16 +633,15 @@ body {
   transition: opacity 0.5s ease;
   border-radius: var(--radius);
   background: transparent;
-  /* No background as requested */
 }
 
-/* The expanding ripple rings */
+/* The expanding ripple rings - Centered at Cell 617 (43.75%, 38.75%) */
 .alarm-ripple-ring {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 600px;
-  height: 600px;
+  top: 38.75%;
+  left: 43.75%;
+  width: 500px;
+  height: 500px;
   border: 4px solid var(--danger);
   border-radius: 50%;
   transform: translate(-50%, -50%) scale(0.1);
@@ -656,15 +655,28 @@ body {
 }
 
 .alarm-active .alarm-ripple-ring {
-  animation: alarm-ripple 3s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;
+  animation: alarm-ripple 4s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;
+}
+
+/* Multiple Echoes (5 rings) */
+.alarm-active .alarm-ripple-ring:nth-child(1) {
+  animation-delay: 0s;
 }
 
 .alarm-active .alarm-ripple-ring:nth-child(2) {
-  animation-delay: 1s;
+  animation-delay: 0.8s;
 }
 
 .alarm-active .alarm-ripple-ring:nth-child(3) {
-  animation-delay: 2s;
+  animation-delay: 1.6s;
+}
+
+.alarm-active .alarm-ripple-ring:nth-child(4) {
+  animation-delay: 2.4s;
+}
+
+.alarm-active .alarm-ripple-ring:nth-child(5) {
+  animation-delay: 3.2s;
 }
 
 /* Armed Alarm (Subtle) */
@@ -675,5 +687,25 @@ body {
 .alarm-armed .alarm-ripple-ring {
   border-color: var(--warn);
   border-width: 2px;
-  animation: alarm-ripple 5s linear infinite;
+  animation: alarm-ripple 6s linear infinite;
+}
+
+.alarm-armed .alarm-ripple-ring:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.alarm-armed .alarm-ripple-ring:nth-child(2) {
+  animation-delay: 1.2s;
+}
+
+.alarm-armed .alarm-ripple-ring:nth-child(3) {
+  animation-delay: 2.4s;
+}
+
+.alarm-armed .alarm-ripple-ring:nth-child(4) {
+  animation-delay: 3.6s;
+}
+
+.alarm-armed .alarm-ripple-ring:nth-child(5) {
+  animation-delay: 4.8s;
 }
