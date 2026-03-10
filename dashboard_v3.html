@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard 3D · Mi Casa Inteligente</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style_v4.css">
+</head>
+
+<body>
+
+    <div class="dashboard-layout">
+        <!-- TOP BAR -->
+        <header class="topbar">
+            <div class="topbar-brand">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
+                    <path d="M9 21V12h6v9" />
+                </svg>
+                <span>Dashboard 3D Evolution</span>
+            </div>
+            <div class="topbar-right">
+                <div class="conn-badge" id="conn-badge">
+                    <span id="conn-text">Conectando...</span>
+                </div>
+                <a href="dashboard_v2.html" class="btn-ha"
+                    style="text-decoration:none; color:inherit; border:1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 10px; font-size: 0.8rem;">
+                    Versión 2D
+                </a>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <div class="fp-container-3d" id="fp-container">
+                <!-- Base 3D Image -->
+                <img src="floorplan_3d.png" alt="3D Floorplan" class="fp-base-img" id="fp-img">
+
+                <!-- Zone Illumination Layer -->
+                <div class="zone-illuminator" id="zone-illuminator">
+                    <!-- Layers will be injected here by JS, each with a clip-path -->
+                </div>
+
+                <!-- SVG Hit Areas -->
+                <svg class="fp-svg-overlay" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <defs>
+                        <!-- ClipPaths for illumination will be defined here or via CSS inline -->
+                    </defs>
+                    <!-- Hit Zones -->
+                    <g id="hit-zones">
+                        <!-- Salón-Comedor: Lower (Comedor) -->
+                        <polygon class="zone-polygon" id="zone-comedor" points="5,68 45,68 45,98 5,98" />
+                        <!-- Salón-Comedor: Upper (Salón) -->
+                        <polygon class="zone-polygon" id="zone-salon" points="5,38 45,38 45,68 5,68" />
+                    </g>
+                </svg>
+
+                <!-- Alarm Overlay -->
+                <div class="alarm-overlay">
+                    <div class="alarm-ripple-ring"></div>
+                    <div class="alarm-ripple-ring"></div>
+                    <div class="alarm-ripple-ring"></div>
+                    <div class="alarm-ripple-ring"></div>
+                    <div class="alarm-ripple-ring"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="app_v4.js"></script>
+</body>
+
+</html>
