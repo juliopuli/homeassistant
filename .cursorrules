@@ -5,7 +5,8 @@
    - Es obligatorio que el código modificado se suba inmediatamente a GitHub para que GitHub Pages (HTTPS) refleje los cambios de CORS y OAuth, ya que la aplicación no puede probarse de forma local mediante el protocolo `file://`.
    - Se debe utilizar la CLI de `git` (comandos `run_command` y similares) después de cualquier set de cambios.
 
-2. **Cero Tokens Locales:**
+2. **Cero Tokens y Claves API:**
+   - **ESTRICTAMENTE PROHIBIDO:** No se puede subir ningún documento que contenga una clave API, token de acceso, secreto o credencial.
    - Queda totalmente prohibido incluir cadenas de base64 como tokens (JWT) harcodeados en los archivos.
    - El token debe provenir SIEMPRE y ÚNICAMENTE del flujo OAuth implementado y del `sessionStorage` (`ha_access_token`).
 

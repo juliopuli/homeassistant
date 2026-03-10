@@ -157,6 +157,34 @@ const ENTITIES = [
     defaultColor: '#fbbf24',
     showIcon: true,
   },
+  {
+    id: 'alarm_control_panel.alarmaaqara',
+    name: 'Alarma Aqara',
+    type: 'alarm',
+    x: 0, y: 0,
+    hidden: true,
+  },
+  {
+    id: 'alarm_control_panel.alarmo',
+    name: 'Alarmo',
+    type: 'alarm',
+    x: 0, y: 0,
+    hidden: true,
+  },
+  {
+    id: 'alarm_control_panel.master',
+    name: 'Máster',
+    type: 'alarm',
+    x: 0, y: 0,
+    hidden: true,
+  },
+  {
+    id: 'alarm_control_panel.nenes',
+    name: 'Nenes',
+    type: 'alarm',
+    x: 0, y: 0,
+    hidden: true,
+  },
   // ── Añade aquí más dispositivos ──
 ];
 
@@ -521,6 +549,7 @@ function renderFloorplanEntities() {
   const container = document.getElementById('fp-entities');
   container.innerHTML = '';
   ENTITIES.forEach(def => {
+    if (def.hidden) return;
     const es = entityStates[def.id] || { state: 'unavailable', attributes: {} };
     const isOn = es.state === 'on';
     const color = getEntityColor(def, es.state, es.attributes);
@@ -785,6 +814,38 @@ function getEntitySVGIcon(type, isOn) {
    ────────────────────────────────────────────── */
 function renderAll() {
   renderFloorplanEntities();
+  updateAlarmStatus();
+}
+
+/**
+ * Checks all alarm entities and updates the floor plan container classes
+ * to trigger the CSS animations (scan line, pulses).
+ */
+function updateAlarmStatus() {
+  const container = document.getElementById('fp-container');
+  if (!container) return;
+
+  const alarms = [
+    'alarm_control_panel.alarmaaqara',
+    'alarm_control_panel.alarmo',
+    'alarm_control_panel.master',
+    'alarm_control_panel.nenes'
+  ];
+
+  let isTriggered = false;
+  let isArmed = false;
+
+  alarms.forEach(id => {
+    const s = entityStates[id]?.state;
+    if (s === 'triggered') isTriggered = true;
+    // States like armed_home, armed_away, armed_night, pending
+    if (s && (s.startsWith('armed_') || s === 'pending')) isArmed = true;
+  });
+
+  // alarm-active: Red scan line + dark red pulse
+  // alarm-armed: Subtle orange/red pulse
+  container.classList.toggle('alarm-active', isTriggered);
+  container.classList.toggle('alarm-armed', isArmed && !isTriggered);
 }
 
 /* ──────────────────────────────────────────────
