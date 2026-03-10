@@ -417,17 +417,32 @@ async function toggleEntity(def) {
   const isOn = current && current.state === 'on';
   const service = isOn ? 'turn_off' : 'turn_on';
   try {
-    const res = await haFetch(`/api/services/${def.type}/${service}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entity_id: def.id }),
-    });
-    if (!res || !res.ok) throw new Error(res?.status);
+    const res = await callService(def.type, service, { entity_id: def.id });
+    if (!res) throw new Error('No response');
     const newState = isOn ? 'off' : 'on';
     showToast(`${def.name} → ${newState === 'on' ? 'Encendida 🔆' : 'Apagada'}`, def.type === 'light' ? '💡' : '🔌');
     entityStates[def.id] = { state: newState, attributes: current ? current.attributes : {} };
     renderAll();
-  } catch (e) { showToast('Error al cambiar el estado', '⚠️'); }
+  } catch (e) {
+    console.error('Toggle error:', e);
+    showToast('Error al cambiar el estado', '⚠️');
+  }
+}
+
+async function callService(domain, service, serviceData) {
+  try {
+    const res = await haFetch(`/api/services/${domain}/${service}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(serviceData),
+    });
+    if (!res || !res.ok) throw new Error(res?.status);
+    return res.json();
+  } catch (e) {
+    console.error(`Error calling service ${domain}.${service}:`, e);
+    showToast('Error al enviar el comando', '⚠️');
+    return null;
+  }
 }
 
 /* ──────────────────────────────────────────────
