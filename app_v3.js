@@ -461,8 +461,14 @@ function connectWebSocket() {
     if (msg.type === 'event' && msg.event?.event_type === 'state_changed') {
       const data = msg.event.data;
       if (ENTITIES.find(e => e.id === data.entity_id) && data.new_state) {
-        const prev = entityStates[data.entity_id]?.state;
-        entityStates[data.entity_id] = { state: data.new_state.state, attributes: data.new_state.attributes || {} };
+        const entityId = data.entity_id;
+        const state = { state: data.new_state.state, attributes: data.new_state.attributes || {} };
+        const prev = entityStates[entityId]?.state;
+        // Update local cache
+        entityStates[entityId] = state;
+        // Refresh UI
+        renderFloorplanEntities();
+        updatePanelIfOpen(entityId);
         if (prev !== data.new_state.state) {
           const def = ENTITIES.find(e => e.id === data.entity_id);
           showToast(`${def.name} → ${data.new_state.state === 'on' ? 'Encendida 🔆' : 'Apagada'}`, def.type === 'light' ? '💡' : '🔌');
@@ -522,9 +528,152 @@ function renderFloorplanEntities() {
     hotspot.appendChild(label);
 
     hotspot.addEventListener('click', () => toggleEntity(def));
+    hotspot.addEventListener('dblclick', (e) => {
+      e.preventDefault();
+      showControlPanel(def.id);
+    });
     container.appendChild(hotspot);
   });
 }
+
+/* ──────────────────────────────────────────────
+   CONTROL PANEL LOGIC
+   ────────────────────────────────────────────── */
+let currentCPEntityId = null;
+
+function showControlPanel(entityId) {
+  const def = ENTITIES.find(e => e.id === entityId);
+  const stateObj = entityStates[entityId];
+  if (!def || !stateObj) return;
+
+  currentCPEntityId = entityId;
+  const panel = document.getElementById('control-panel');
+  const nameEl = document.getElementById('cp-name');
+  const iconEl = document.getElementById('cp-icon');
+  const contentEl = document.getElementById('cp-content');
+
+  nameEl.textContent = def.name;
+  iconEl.innerHTML = getEntitySVGIcon(def.type, stateObj.state === 'on');
+  panel.classList.add('active');
+
+  renderCPContent(entityId);
+}
+
+function closeControlPanel() {
+  const panel = document.getElementById('control-panel');
+  panel.classList.remove('active');
+  currentCPEntityId = null;
+}
+
+function renderCPContent(entityId) {
+  const stateObj = entityStates[entityId];
+  const contentEl = document.getElementById('cp-content');
+  contentEl.innerHTML = '';
+
+  const isOn = stateObj.state === 'on';
+
+  // 1. Power Toggle
+  const powerBtn = document.createElement('button');
+  powerBtn.className = `cp-power ${isOn ? 'on' : ''}`;
+  powerBtn.innerHTML = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10"/>
+    </svg>
+    <span>${isOn ? 'ENCENDIDO' : 'APAGADO'}</span>
+  `;
+  powerBtn.onclick = () => toggleEntity(ENTITIES.find(e => e.id === entityId));
+  contentEl.appendChild(powerBtn);
+
+  // 2. Brightness (if supported)
+  if (stateObj.attributes && (stateObj.attributes.supported_color_modes?.includes('brightness') || stateObj.attributes.brightness !== undefined)) {
+    const brItem = document.createElement('div');
+    brItem.className = 'cp-item';
+    const currentBr = Math.round((stateObj.attributes.brightness || 0) / 255 * 100);
+
+    brItem.innerHTML = `
+      <label class="cp-label">Brillo</label>
+      <div class="slider-container">
+        <input type="range" min="1" max="100" value="${currentBr}" id="cp-brightness">
+        <span class="slider-val">${currentBr}%</span>
+      </div>
+    `;
+
+    const input = brItem.querySelector('input');
+    const valSpan = brItem.querySelector('.slider-val');
+
+    input.oninput = (e) => {
+      valSpan.textContent = `${e.target.value}%`;
+    };
+
+    input.onchange = (e) => {
+      const val = parseInt(e.target.value);
+      callService('light', 'turn_on', {
+        entity_id: entityId,
+        brightness_pct: val
+      });
+    };
+
+    contentEl.appendChild(brItem);
+  }
+
+  // 3. Color Presets (if supported)
+  const supportsColor = stateObj.attributes?.supported_color_modes?.some(m => m.includes('color') || m.includes('hs') || m.includes('rgb'));
+  if (supportsColor) {
+    const colorItem = document.createElement('div');
+    colorItem.className = 'cp-item';
+    colorItem.innerHTML = `<label class="cp-label">Color</label>`;
+
+    const grid = document.createElement('div');
+    grid.className = 'color-presets';
+
+    const colors = [
+      { name: 'Cálido', rgb: [255, 180, 100] },
+      { name: 'Blanco', rgb: [255, 255, 255] },
+      { name: 'Frío', rgb: [180, 200, 255] },
+      { name: 'Rojo', rgb: [255, 60, 60] },
+      { name: 'Verde', rgb: [60, 255, 60] },
+      { name: 'Azul', rgb: [60, 60, 255] },
+      { name: 'Amarillo', rgb: [255, 255, 60] },
+      { name: 'Magenta', rgb: [255, 60, 255] },
+      { name: 'Cian', rgb: [60, 255, 255] },
+      { name: 'Naranja', rgb: [255, 150, 60] }
+    ];
+
+    colors.forEach(c => {
+      const dot = document.createElement('div');
+      dot.className = 'color-dot';
+      dot.style.background = `rgb(${c.rgb.join(',')})`;
+      dot.onclick = () => {
+        callService('light', 'turn_on', {
+          entity_id: entityId,
+          rgb_color: c.rgb
+        });
+      };
+      grid.appendChild(dot);
+    });
+
+    colorItem.appendChild(grid);
+    contentEl.appendChild(colorItem);
+  }
+}
+
+// Ensure the panel updates if HA state changes
+function updatePanelIfOpen(entityId) {
+  if (currentCPEntityId === entityId) {
+    renderCPContent(entityId);
+    const stateObj = entityStates[entityId];
+    const iconEl = document.getElementById('cp-icon');
+    const def = ENTITIES.find(e => e.id === entityId);
+    if (def) {
+      iconEl.innerHTML = getEntitySVGIcon(def.type, stateObj.state === 'on');
+    }
+  }
+}
+
+// Add event listener for close button
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('cp-close')?.addEventListener('click', closeControlPanel);
+});
 
 function buildGlowRingsSVG(color, rgb) {
   return `
