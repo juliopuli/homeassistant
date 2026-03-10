@@ -26,8 +26,8 @@ const ENTITIES = [
     id: 'light.luzcomedor',
     name: 'Luz Comedor',
     type: 'light',
-    x: 13.75,      // Cuadro 966
-    y: 61.25,
+    x: 16.25,      // Cuadro 1007
+    y: 63.75,
     defaultColor: '#fbbf24',
     showIcon: true,
   },
@@ -35,8 +35,8 @@ const ENTITIES = [
     id: 'light.luzsalon',
     name: 'Luz Salón',
     type: 'light',
-    x: 13.75,      // Cuadro 646
-    y: 41.25,
+    x: 13.75,      // Cuadro 686
+    y: 43.75,
     defaultColor: '#fbbf24',
     showIcon: true,
   },
@@ -44,8 +44,8 @@ const ENTITIES = [
     id: 'input_boolean.sensores_pasillo',
     name: 'Presencia Pasillo',
     type: 'input_boolean',
-    x: 26.25,     // Cuadro 451
-    y: 28.75,
+    x: 26.25,     // Cuadro 491
+    y: 31.25,
     defaultColor: '#6366f1', // Indigo custom color para el radar
     showIcon: true,
   },
@@ -62,8 +62,8 @@ const ENTITIES = [
     id: 'binary_sensor.sensorsalon',
     name: 'Movimiento Salón',
     type: 'binary_sensor',
-    x: 3.75,      // Cuadro 1082
-    y: 68.75,
+    x: 16.25,     // Cuadro 767
+    y: 48.75,
     defaultColor: '#6366f1',
     showIcon: true,
   },
@@ -80,8 +80,8 @@ const ENTITIES = [
     id: 'light.terraza1',
     name: 'Luz Terraza 1',
     type: 'light',
-    x: 28.75,     // Cuadro 1052
-    y: 66.25,
+    x: 28.75,     // Cuadro 1092
+    y: 68.75,
     defaultColor: '#fbbf24',
     showIcon: true,
   },
@@ -89,8 +89,8 @@ const ENTITIES = [
     id: 'light.terraza2',
     name: 'Luz Terraza 2',
     type: 'light',
-    x: 23.75,     // Cuadro 1130
-    y: 71.25,
+    x: 23.75,     // Cuadro 1170
+    y: 73.75,
     defaultColor: '#fbbf24',
     showIcon: true,
   },
@@ -98,8 +98,8 @@ const ENTITIES = [
     id: 'light.pasillo1',
     name: 'Luz Pasillo 1',
     type: 'light',
-    x: 16.25,     // Cuadro 447
-    y: 28.75,
+    x: 16.25,     // Cuadro 487
+    y: 31.25,
     defaultColor: '#fbbf24',
     showIcon: true,
   },
@@ -134,14 +134,21 @@ const ENTITIES = [
     id: 'light.luznenes',
     name: 'Luz Nenes',
     type: 'light',
-    x: 66.25,     // Cuadro 307
-    y: 18.75,
+    x: 66.25,     // Cuadro 347
+    y: 21.25,
+    defaultColor: '#fbbf24',
+    showIcon: true,
+  },
+  {
+    id: 'light.luz_dormitorio',
+    name: 'Luz Dormitorio',
+    type: 'light',
+    x: 68.75,     // Cuadro 948
+    y: 58.75,
     defaultColor: '#fbbf24',
     showIcon: true,
   },
   // ── Añade aquí más dispositivos ──
-  // { id: 'switch.enchufe_salon', name: 'Enchufe Salón',  type: 'switch', x:15, y:62, defaultColor:'#60a5fa' },
-  // { id: 'light.dormitorio',     name: 'Luz Dormitorio', type: 'light',  x:75, y:60, defaultColor:'#a78bfa' },
 ];
 
 /* ──────────────────────────────────────────────
