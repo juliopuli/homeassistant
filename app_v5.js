@@ -64,8 +64,13 @@ function connectWebSocket() {
     ws = new WebSocket(wsUrl);
     ws.onmessage = (event) => {
         const msg = JSON.parse(event.data);
-        if (msg.type === 'auth_required') ws.send(JSON.stringify({ type: 'auth', access_token: getAccessToken() }));
+        console.log('[HA WS]', msg.type);
+        if (msg.type === 'auth_required') {
+            console.log('[HA WS] Auth required');
+            ws.send(JSON.stringify({ type: 'auth', access_token: getAccessToken() }));
+        }
         if (msg.type === 'auth_ok') {
+            console.log('[HA WS] Auth OK');
             document.getElementById('conn-status').textContent = 'Conectado';
             ws.send(JSON.stringify({ id: wsMsgId++, type: 'subscribe_events', event_type: 'state_changed' }));
             fetchAllStates();
@@ -100,7 +105,8 @@ function initDynamicLayers() {
         ledContainer.appendChild(ledPoly);
 
         // Interaction
-        hitbox.onclick = () => {
+        hitbox.onclick = (e) => {
+            console.log('[UI Click] Zone:', id);
             if (!zone) return;
             // Toggle logic: if any entity in the zone is ON, turn all OFF. Otherwise turn all ON.
             const isAnyOn = zone.entity_ids.some(eid => entityStates[eid]?.state === 'on');

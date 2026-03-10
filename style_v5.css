@@ -107,6 +107,7 @@ body {
 
 /* The glow effect using drop-shadow on the stroke */
 .led-polygon.active {
+    stroke: var(--led-glow-color, var(--led-warm));
     opacity: 1;
     stroke-width: 4;
     /* Multi-layered shadow for intense glow */
