@@ -18,8 +18,8 @@ const ENTITIES = [
     id: 'light.piesalon',
     name: 'Lámpara pie Salón',
     type: 'light',
-    x: 7.5,      // % desde la izquierda — Cuadro 142 (Col 1)
-    y: 37.5,     // % desde arriba — Cuadro 142 (Row 7)
+    x: 6.25,      // Cuadro 643
+    y: 41.25,
     defaultColor: '#fbbf24',
   },
   {
@@ -145,6 +145,15 @@ const ENTITIES = [
     type: 'light',
     x: 68.75,     // Cuadro 948
     y: 58.75,
+    defaultColor: '#fbbf24',
+    showIcon: true,
+  },
+  {
+    id: 'light.pasillo2',
+    name: 'Luz Pasillo 2',
+    type: 'light',
+    x: 41.25,     // Cuadro 777
+    y: 48.75,
     defaultColor: '#fbbf24',
     showIcon: true,
   },
