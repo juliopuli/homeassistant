@@ -18,7 +18,7 @@ const ZONES = [
 
 // Precision Grid Mapping (64x64)
 const ENTITY_LED_CELLS = {
-    'light.piesalon': [1410, 1411, 1412, 1413, 1414, 1474, 1538, 1602]
+    'light.piesalon': [1602, 1538, 1474, 1410, 1411, 1412, 1413, 1414]
 };
 
 const ALARM_ENTITIES = [
