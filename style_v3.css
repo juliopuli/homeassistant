@@ -612,20 +612,39 @@ body {
 
 /* ── Alarm Visuals ── */
 @keyframes alarm-scan {
-  0% { top: -10%; }
-  100% { top: 110%; }
+  0% {
+    top: -10%;
+  }
+
+  100% {
+    top: 110%;
+  }
 }
 
-@keyframes alarm-pulse {
-  0% { background: rgba(239, 68, 68, 0); }
-  50% { background: rgba(239, 68, 68, 0.15); }
-  100% { background: rgba(239, 68, 68, 0); }
+@keyframes alarm-wave {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
 
-@keyframes alarm-pulse-subtle {
-  0% { background: rgba(245, 158, 11, 0); }
-  50% { background: rgba(245, 158, 11, 0.05); }
-  100% { background: rgba(245, 158, 11, 0); }
+@keyframes alarm-wave-subtle {
+  0% {
+    background-position: -200% 0;
+    opacity: 0.3;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    background-position: 200% 0;
+    opacity: 0.3;
+  }
 }
 
 .alarm-overlay {
@@ -652,7 +671,14 @@ body {
 /* Active Alarm (Triggered) */
 .alarm-active .alarm-overlay {
   opacity: 1;
-  animation: alarm-pulse 2s infinite;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(239, 68, 68, 0.05) 25%,
+      rgba(239, 68, 68, 0.2) 50%,
+      rgba(239, 68, 68, 0.05) 75%,
+      transparent 100%);
+  background-size: 200% 100%;
+  animation: alarm-wave 3s linear infinite;
 }
 
 .alarm-active .alarm-scan-line {
@@ -663,5 +689,12 @@ body {
 /* Armed Alarm (Subtle) */
 .alarm-armed .alarm-overlay {
   opacity: 1;
-  animation: alarm-pulse-subtle 4s infinite;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(245, 158, 11, 0.03) 25%,
+      rgba(245, 158, 11, 0.08) 50%,
+      rgba(245, 158, 11, 0.03) 75%,
+      transparent 100%);
+  background-size: 200% 100%;
+  animation: alarm-wave-subtle 6s linear infinite;
 }
