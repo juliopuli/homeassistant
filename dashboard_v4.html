@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard 3D Zenital · LEDs Dinámicos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style_v5.css">
+</head>
+
+<body>
+
+    <div class="dashboard-layout">
+        <!-- TOP BAR -->
+        <header class="topbar">
+            <div class="brand">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                </svg>
+                <span>3D Zenital · LED Rodapié</span>
+            </div>
+            <div class="topbar-right" style="display:flex; gap:1.5rem; align-items:center;">
+                <div class="conn-status" id="conn-status">Conectando...</div>
+                <a href="dashboard_v2.html"
+                    style="text-decoration:none; color:var(--text-muted); font-size:0.8rem; opacity:0.6;">Volver a
+                    2D</a>
+            </div>
+        </header>
+
+        <!-- MAIN CANVAS -->
+        <main class="main-canvas">
+            <div class="fp-container-zenital" id="fp-container">
+                <!-- Base 3D Map -->
+                <img src="floorplan_3d_topdown.png" alt="3D Floorplan" class="fp-base-img" id="fp-img">
+
+                <!-- Dynamic LED Overlay (The Glow) -->
+                <svg class="led-overlay-svg" viewBox="0 0 100 100" preserveAspectRatio="none" id="led-svg">
+                    <!-- Polygons for LED glow will be mirrored here from the hit areas -->
+                    <g id="led-layers"></g>
+                </svg>
+
+                <!-- Interactive Hit Areas (The Controls) -->
+                <svg class="hit-overlay-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <g id="hit-zones">
+                        <!-- Polygons defined in app_v5.js will be injected here if needed, 
+                             but we'll keep the most complex ones here for clarity -->
+
+                        <!-- Salón-Comedor -->
+                        <polygon class="room-hitbox" id="zone-saloncomedor"
+                            points="4,35 27,35 27,68 25,68 25,97 4,97" />
+                        <!-- Salita -->
+                        <polygon class="room-hitbox" id="zone-salita" points="27,34 55,34 55,65 27,65" />
+                        <!-- Cocina -->
+                        <polygon class="room-hitbox" id="zone-cocina" points="18,4 35,4 35,22 18,22" />
+                        <!-- Lavadero -->
+                        <polygon class="room-hitbox" id="zone-lavadero" points="36,4 54,4 54,9 36,9" />
+                        <!-- Baño 1 -->
+                        <polygon class="room-hitbox" id="zone-bano1" points="36,10 52,10 52,26 36,26" />
+                        <!-- Pasillo -->
+                        <polygon class="room-hitbox" id="zone-pasillo" points="5,23 60,23 60,34 5,34" />
+                        <!-- Habitación Nenes -->
+                        <polygon class="room-hitbox" id="zone-nenes" points="56,12 81,12 81,32 56,32" />
+                        <!-- Baño Suite -->
+                        <polygon class="room-hitbox" id="zone-banosuite" points="63,26 81,26 81,42 63,42" />
+                        <!-- Dormitorio Principal -->
+                        <polygon class="room-hitbox" id="zone-dormitorio" points="56,42 81,42 81,95 56,95" />
+                    </g>
+                </svg>
+
+                <!-- Alarm Ripple (3D Zenital) -->
+                <div class="alarm-overlay">
+                    <div class="alarm-ripple-ring"></div>
+                    <div class="alarm-ripple-ring"></div>
+                    <div class="alarm-ripple-ring"></div>
+                    <div class="alarm-ripple-ring"></div>
+                    <div class="alarm-ripple-ring"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="app_v5.js"></script>
+</body>
+
+</html>

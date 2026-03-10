@@ -1,0 +1,221 @@
+/* ══════════════════════════════════════════════
+   Dashboard HA · 3D Zenital LED Edition (style_v5.css)
+   ══════════════════════════════════════════════ */
+
+:root {
+    --font: 'Inter', system-ui, sans-serif;
+    --bg: #0b0e14;
+    --surface: rgba(255, 255, 255, 0.03);
+    --border: rgba(255, 255, 255, 0.08);
+    --text: #f0f4ff;
+    --accent: #6366f1;
+    --danger: #ff0000;
+    --radius: 20px;
+
+    /* LED Colors */
+    --led-warm: rgba(255, 200, 100, 0.8);
+    --led-cool: rgba(100, 200, 255, 0.8);
+    --led-rgb: rgba(255, 255, 255, 0.8);
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    height: 100vh;
+    overflow: hidden;
+}
+
+.dashboard-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* ── Top Bar ── */
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    z-index: 100;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-weight: 600;
+}
+
+.brand svg {
+    width: 28px;
+    height: 28px;
+    color: var(--accent);
+}
+
+/* ── Main Canvas ── */
+.main-canvas {
+    flex: 1;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle at center, #1a1f2e 0%, #0b0e14 100%);
+}
+
+.fp-container-zenital {
+    position: relative;
+    width: 900px;
+    aspect-ratio: 1 / 1;
+    /* Adjust based on image aspect ratio if needed */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fp-base-img {
+    width: 100%;
+    height: auto;
+    display: block;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* ── Dynamic LED Layer (SVG) ── */
+.led-overlay-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 20;
+    pointer-events: none;
+}
+
+.led-polygon {
+    fill: none;
+    stroke-width: 0;
+    stroke: transparent;
+    opacity: 0;
+    transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* The glow effect using drop-shadow on the stroke */
+.led-polygon.active {
+    opacity: 1;
+    stroke-width: 4;
+    /* Multi-layered shadow for intense glow */
+    filter:
+        drop-shadow(0 0 5px var(--led-glow-color, var(--led-warm))) drop-shadow(0 0 15px var(--led-glow-color, var(--led-warm))) drop-shadow(0 0 25px var(--led-glow-color, var(--led-warm)));
+}
+
+/* ── Hit Areas (Transparent Interaction) ── */
+.hit-overlay-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 30;
+}
+
+.room-hitbox {
+    fill: transparent;
+    cursor: pointer;
+    transition: fill 0.3s;
+}
+
+.room-hitbox:hover {
+    fill: rgba(255, 255, 255, 0.03);
+}
+
+/* ── Alarm Visuals (Zenital Ripple) ── */
+.alarm-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 40;
+    pointer-events: none;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.5s;
+}
+
+.alarm-active .alarm-overlay {
+    opacity: 1;
+}
+
+.alarm-ripple-ring {
+    position: absolute;
+    top: 38.75%;
+    left: 43.75%;
+    width: 100px;
+    height: 100px;
+    border: 4px solid var(--danger);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0.1);
+    opacity: 0;
+}
+
+@keyframes alarm-ripple-zenital {
+    0% {
+        transform: translate(-50%, -50%) scale(0.1);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(8);
+        opacity: 0;
+    }
+}
+
+.alarm-active .alarm-ripple-ring {
+    animation: alarm-ripple-zenital 4s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;
+}
+
+/* ── Generic UI ── */
+.conn-status {
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.toast-container {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.toast {
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(15px);
+    padding: 0.8rem 1.6rem;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
