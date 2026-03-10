@@ -108,14 +108,16 @@ body {
 /* The glow effect using drop-shadow on the stroke */
 .led-polygon.active {
     stroke: var(--led-glow-color, var(--led-warm));
+    fill: var(--led-glow-color, var(--led-warm));
+    /* Solid light source cell */
     opacity: 1;
-    stroke-width: 0.8;
-    /* Slightly thicker for better visibility */
+    stroke-width: 0.1;
+    /* Very thin border to not look like a blob */
     stroke-linecap: round;
     stroke-linejoin: round;
-    /* More pronounced, multi-layered "light shadow" effect */
+    /* Rich "Sombra de Luz" effect (Atmospheric Glow) */
     filter:
-        drop-shadow(0 0 1px var(--led-glow-color, var(--led-warm))) drop-shadow(0 0 4px var(--led-glow-color, var(--led-warm))) drop-shadow(0 0 8px var(--led-glow-color, var(--led-warm)));
+        drop-shadow(0 0 1px var(--led-glow-color, var(--led-warm))) drop-shadow(0 0 5px var(--led-glow-color, var(--led-warm))) drop-shadow(0 0 12px var(--led-glow-color, var(--led-warm))) drop-shadow(0 0 22px var(--led-glow-color, var(--led-warm)));
 }
 
 /* ── Hit Areas (Transparent Interaction) ── */
