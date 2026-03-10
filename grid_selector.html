@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D LED Grid Selector</title>
+    <style>
+        :root {
+            --bg: #0b1016;
+            --text: #f0f4ff;
+            --accent: #6366f1;
+            --cell-size: 10px;
+            /* Adjust based on grid density */
+            --grid-cols: 64;
+            /* 64 * 10 = 640px */
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .map-container {
+            position: relative;
+            width: 640px;
+            height: 640px;
+            border: 2px solid #333;
+            background-image: url('floorplan_3d_topdown.png');
+            background-size: cover;
+            user-select: none;
+        }
+
+        .grid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: grid;
+            grid-template-columns: repeat(var(--grid-cols), 1fr);
+            width: 100%;
+            height: 100%;
+        }
+
+        .cell {
+            border: 0.1px solid rgba(255, 255, 255, 0.05);
+            box-sizing: border-box;
+            cursor: crosshair;
+        }
+
+        .cell:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .cell.selected {
+            background: rgba(255, 230, 0, 0.5);
+            border: 0.1px solid #ffe600;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: var(--accent);
+            border: none;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        button:hover {
+            filter: brightness(1.1);
+        }
+
+        textarea {
+            margin-top: 20px;
+            width: 640px;
+            height: 100px;
+            background: #1a222c;
+            color: #ffca28;
+            border: 1px solid #333;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>Selector de Cuadrícula LED 3D</h1>
+        <p>Haz clic y arrastra para seleccionar los cuadros del rodapié. Luego dale a "Exportar".</p>
+    </div>
+
+    <div class="controls">
+        <button onclick="exportIds()">Exportar IDs</button>
+        <button onclick="clearGrid()" style="background:#444;">Limpiar</button>
+    </div>
+
+    <div class="map-container" id="map">
+        <div class="grid-overlay" id="grid"></div>
+    </div>
+
+    <p style="font-size: 0.8rem; color: #888;">IDs seleccionados:</p>
+    <textarea id="output" readonly placeholder="Los IDs aparecerán aquí..."></textarea>
+
+    <script>
+        const COLS = 64;
+        const ROWS = 64;
+        const grid = document.getElementById('grid');
+        const output = document.getElementById('output');
+        let isMouseDown = false;
+
+        // Initialize grid
+        for (let i = 0; i < COLS * ROWS; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.dataset.id = i;
+
+            cell.addEventListener('mousedown', () => {
+                isMouseDown = true;
+                cell.classList.toggle('selected');
+            });
+            cell.addEventListener('mouseenter', () => {
+                if (isMouseDown) cell.classList.toggle('selected');
+            });
+            grid.appendChild(cell);
+        }
+
+        window.addEventListener('mouseup', () => isMouseDown = false);
+
+        function exportIds() {
+            const selected = Array.from(document.querySelectorAll('.cell.selected')).map(c => c.dataset.id);
+            output.value = selected.join(', ');
+            console.log('IDs seleccionados:', selected);
+        }
+
+        function clearGrid() {
+            document.querySelectorAll('.cell.selected').forEach(c => c.classList.remove('selected'));
+            output.value = '';
+        }
+    </script>
+</body>
+
+</html>
