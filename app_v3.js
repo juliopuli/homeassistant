@@ -587,17 +587,31 @@ function renderCPContent(entityId) {
 
   const isOn = stateObj.state === 'on';
 
-  // 1. Power Toggle
-  const powerBtn = document.createElement('button');
-  powerBtn.className = `cp-power ${isOn ? 'on' : ''}`;
-  powerBtn.innerHTML = `
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10"/>
-    </svg>
-    <span>${isOn ? 'ENCENDIDO' : 'APAGADO'}</span>
-  `;
-  powerBtn.onclick = () => toggleEntity(ENTITIES.find(e => e.id === entityId));
-  contentEl.appendChild(powerBtn);
+  // 1. Power Toggle (only for controllable types)
+  const controllable = ['light', 'switch', 'input_boolean'].includes(def.type);
+  if (controllable) {
+    const powerBtn = document.createElement('button');
+    powerBtn.className = `cp-power ${isOn ? 'on' : ''}`;
+    powerBtn.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10"/>
+      </svg>
+      <span>${isOn ? 'ENCENDIDO' : 'APAGADO'}</span>
+    `;
+    powerBtn.onclick = () => toggleEntity(ENTITIES.find(e => e.id === entityId));
+    contentEl.appendChild(powerBtn);
+  } else {
+    // Show status for read-only
+    const statusItem = document.createElement('div');
+    statusItem.className = 'cp-item';
+    statusItem.innerHTML = `
+      <label class="cp-label">Estado Actual</label>
+      <div style="font-size: 1.1rem; font-weight: 500; color: var(--text); padding-top: 5px;">
+        ${stateObj.state.toUpperCase()}
+      </div>
+    `;
+    contentEl.appendChild(statusItem);
+  }
 
   // 2. Brightness (if supported)
   if (stateObj.attributes && (stateObj.attributes.supported_color_modes?.includes('brightness') || stateObj.attributes.brightness !== undefined)) {
