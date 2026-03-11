@@ -21,8 +21,8 @@ const ENTITY_LED_CELLS = {
     'light.piesalon': [1602, 1538, 1474, 1410, 1411, 1412, 1413, 1414],
     'light.luzsalon': [1414, 1415, 1416, 1417, 1418, 1419, 1420, 1421, 1552, 1616, 1680, 2192, 2256, 2320],
     'light.luzcomedor': [2178, 2242, 2306, 2370, 2434, 2498, 2562, 2626, 2690, 2691, 2692, 2693, 2694, 2695, 2696, 2697, 2698, 2699, 2700, 2701, 2702, 2703, 2704, 2640, 2576],
-    'light.pasillo1': [911, 912, 913, 914, 915, 916, 917, 918, 982, 1046, 1110, 1111, 1112, 1113, 1114, 1115],
-    'light.pasillo2': [911, 912, 913, 914, 915, 916, 917, 918, 982, 1046, 1110, 1111, 1112, 1113, 1114, 1115]
+    'light.pasillo1': [911, 912, 913, 914, 915, 916, 917, 918, 919, 982, 983, 1046, 1047, 1048, 1049, 1050, 1051, 1110, 1111, 1112, 1113, 1114, 1115],
+    'light.pasillo2': [911, 912, 913, 914, 915, 916, 917, 918, 919, 982, 983, 1046, 1047, 1048, 1049, 1050, 1051, 1110, 1111, 1112, 1113, 1114, 1115]
 };
 
 const ALARM_ENTITIES = [
@@ -158,23 +158,51 @@ function initDynamicLayers() {
         }
         if (currentSegment.length > 0) segments.push(currentSegment);
 
-        // Render each contiguous segment as a polyline
+        // Render each contiguous segment as a polyline with "Mid-Edge" logic
         segments.forEach(seg => {
             if (seg.length === 0) return;
-            const polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
-            const points = seg.map(cid => {
-                const x = (cid % 64) * (100 / 64) + (100 / 128); // Cell center X
-                const y = Math.floor(cid / 64) * (100 / 64) + (100 / 128); // Cell center Y
-                return `${x},${y}`;
-            }).join(' ');
 
-            polyline.setAttribute('points', points);
-            polyline.setAttribute('fill', 'none');
-            // If only one cell, make it a dot-like stroke
-            if (seg.length === 1) {
-                polyline.setAttribute('stroke-linecap', 'round');
+            const segmentPoints = [];
+            const usedInSegment = new Set();
+            const segSet = new Set(seg); // Local set for fast adjacency check
+
+            for (let i = 0; i < seg.length; i++) {
+                const cid = seg[i];
+                if (usedInSegment.has(cid)) continue;
+
+                // Look for a "thickness partner" within the same segment
+                const r = Math.floor(cid / 64), c = cid % 64;
+                const neighbors = [cid - 64, cid + 64, cid - 1, cid + 1];
+                let partner = null;
+
+                for (const nid of neighbors) {
+                    if (segSet.has(nid) && !usedInSegment.has(nid)) {
+                        partner = nid;
+                        break;
+                    }
+                }
+
+                let px, py;
+                if (partner !== null) {
+                    const r2 = Math.floor(partner / 64), c2 = partner % 64;
+                    // Boundary point
+                    px = ((c + c2) / 2) * (100 / 64) + (100 / 128);
+                    py = ((r + r2) / 2) * (100 / 64) + (100 / 128);
+                    usedInSegment.add(partner);
+                } else {
+                    px = c * (100 / 64) + (100 / 128);
+                    py = r * (100 / 64) + (100 / 128);
+                }
+                usedInSegment.add(cid);
+                segmentPoints.push(`${px},${py}`);
             }
-            g.appendChild(polyline);
+
+            if (segmentPoints.length > 0) {
+                const polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+                polyline.setAttribute('points', segmentPoints.join(' '));
+                polyline.setAttribute('fill', 'none');
+                g.appendChild(polyline);
+            }
         });
 
         cellGroup.appendChild(g);
