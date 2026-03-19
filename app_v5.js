@@ -163,37 +163,14 @@ function initDynamicLayers() {
             if (seg.length === 0) return;
 
             const segmentPoints = [];
-            const usedInSegment = new Set();
-            const segSet = new Set(seg); // Local set for fast adjacency check
 
             for (let i = 0; i < seg.length; i++) {
                 const cid = seg[i];
-                if (usedInSegment.has(cid)) continue;
-
-                // Look for a "thickness partner" within the same segment
+                
                 const r = Math.floor(cid / 64), c = cid % 64;
-                const neighbors = [cid - 64, cid + 64, cid - 1, cid + 1];
-                let partner = null;
-
-                for (const nid of neighbors) {
-                    if (segSet.has(nid) && !usedInSegment.has(nid)) {
-                        partner = nid;
-                        break;
-                    }
-                }
-
-                let px, py;
-                if (partner !== null) {
-                    const r2 = Math.floor(partner / 64), c2 = partner % 64;
-                    // Boundary point
-                    px = ((c + c2) / 2) * (100 / 64) + (100 / 128);
-                    py = ((r + r2) / 2) * (100 / 64) + (100 / 128);
-                    usedInSegment.add(partner);
-                } else {
-                    px = c * (100 / 64) + (100 / 128);
-                    py = r * (100 / 64) + (100 / 128);
-                }
-                usedInSegment.add(cid);
+                const px = c * (100 / 64) + (100 / 128);
+                const py = r * (100 / 64) + (100 / 128);
+                
                 segmentPoints.push(`${px},${py}`);
             }
 
