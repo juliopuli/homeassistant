@@ -97,9 +97,24 @@ function connectWebSocket() {
 /* ──────────────────────────────────────────────
    POSITIONING GRID (64x64)
    ────────────────────────────────────────────── */
+let selectedIds = [];
+
+function updateSelectionUI() {
+    const list = document.getElementById('selection-list');
+    const panel = document.getElementById('grid-selection-panel');
+    if (!list || !panel) return;
+
+    if (selectedIds.length === 0) {
+        list.textContent = 'Haga clic en la cuadrícula...';
+    } else {
+        list.textContent = selectedIds.join(', ');
+    }
+}
+
 function setupGrid() {
     const btn = document.getElementById('btn-grid');
     const fpContainer = document.getElementById('fp-container');
+    const panel = document.getElementById('grid-selection-panel');
     if (!btn || !fpContainer) return;
 
     const grid = document.createElement('div');
@@ -119,9 +134,17 @@ function setupGrid() {
 
         cell.title = `ID: ${i}\nx: ${x}%, y: ${y}%`;
         cell.addEventListener('click', () => {
-            console.log(`LED ID: ${i} (x: ${x}%, y: ${y}%)`);
-            // Show toast using existing dash logic if available
-            if (typeof showToast === 'function') showToast(`ID ${i} copiado a consola`, '📍');
+            const cid = i;
+            if (selectedIds.includes(cid)) {
+                selectedIds = selectedIds.filter(id => id !== cid);
+                cell.classList.remove('selected');
+            } else {
+                selectedIds.push(cid);
+                selectedIds.sort((a,b) => a-b);
+                cell.classList.add('selected');
+            }
+            updateSelectionUI();
+            console.log(`LED ID: ${cid} (x: ${x}%, y: ${y}%)`);
         });
         grid.appendChild(cell);
     }
@@ -129,6 +152,22 @@ function setupGrid() {
     btn.addEventListener('click', () => {
         const active = grid.classList.toggle('active');
         btn.classList.toggle('active', active);
+        if (panel) panel.classList.toggle('active', active);
+    });
+
+    // Selection Actions
+    document.getElementById('btn-clear-selection')?.addEventListener('click', () => {
+        selectedIds = [];
+        grid.querySelectorAll('.grid-cell.selected').forEach(c => c.classList.remove('selected'));
+        updateSelectionUI();
+    });
+
+    document.getElementById('btn-copy-selection')?.addEventListener('click', () => {
+        if (selectedIds.length === 0) return;
+        const text = selectedIds.join(', ');
+        navigator.clipboard.writeText(text).then(() => {
+            if (typeof showToast === 'function') showToast('IDs copiados al portapapeles', '📋');
+        });
     });
 }
 
