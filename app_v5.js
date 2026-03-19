@@ -6,11 +6,11 @@ const HA_URL = 'https://julhomecala.priona.com';
 
 const ZONES = [
     { id: 'zone-saloncomedor', entity_ids: ['light.luzcomedor', 'light.luzsalon', 'light.piesalon'], name: 'Salón-Comedor' },
-    { id: 'zone-salita', entity_ids: ['light.foco1', 'light.extended_color_light_1', 'light.foco3'], name: 'Salita' },
+    { id: 'zone-salita', entity_ids: ['light.pasillo2'], name: 'Salita' },
     { id: 'zone-cocina', entity_ids: ['light.cocina'], name: 'Cocina' },
     { id: 'zone-lavadero', entity_ids: ['light.lavadero'], name: 'Lavadero' },
     { id: 'zone-bano1', entity_ids: ['light.bano_1'], name: 'Baño 1' },
-    { id: 'zone-pasillo', entity_ids: ['light.pasillo1', 'light.pasillo2'], name: 'Pasillo' },
+    { id: 'zone-pasillo', entity_ids: ['light.pasillo1', 'light.foco1', 'light.extended_color_light_1', 'light.foco3'], name: 'Pasillo' },
     { id: 'zone-nenes', entity_ids: ['light.luznenes'], name: 'Habitación Nenes' },
     { id: 'zone-banosuite', entity_ids: ['light.bano_suite'], name: 'Baño Suite' },
     { id: 'zone-dormitorio', entity_ids: ['light.luz_dormitorio'], name: 'Dormitorio Principal' }
