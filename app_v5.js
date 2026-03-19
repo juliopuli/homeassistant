@@ -18,14 +18,14 @@ const ZONES = [
 
 // Precision Grid Mapping (64x64)
 const ENTITY_LED_CELLS = {
-    'light.piesalon': [1602, 1538, 1474, 1410, 1411, 1412, 1413, 1414],
-    'light.luzsalon': [1414, 1415, 1416, 1417, 1418, 1419, 1420, 1421, 1552, 1616, 1680, 2192, 2256, 2320],
-    'light.luzcomedor': [2178, 2242, 2306, 2370, 2434, 2498, 2562, 2626, 2690, 2691, 2692, 2693, 2694, 2695, 2696, 2697, 2698, 2699, 2700, 2701, 2702, 2703, 2704, 2640, 2576],
-    'light.pasillo1': [911, 912, 913, 914, 915, 916, 917, 918, 919, 983, 1047, 1048, 1049, 1050, 1051],
+    'light.piesalon': [6404, 6148, 5892, 5636, 5638, 5640, 5642, 5644],
+    'light.luzsalon': [5644, 5646, 5648, 5650, 5652, 5654, 5656, 5658, 6176, 6432, 6688, 8720, 8976, 9232],
+    'light.luzcomedor': [8710, 8966, 9222, 9478, 9734, 9990, 10246, 10502, 10758, 10760, 10762, 10764, 10766, 10768, 10770, 10772, 10774, 10776, 10778, 10780, 10782, 10784, 10786, 10530, 10274],
+    'light.pasillo1': [3614, 3616, 3618, 3620, 3622, 3624, 3626, 3628, 3630, 3886, 4142, 4144, 4146, 4148, 4150],
     'light.pasillo2': [],
-    'light.foco1': [911, 912, 913, 914, 915, 916, 917, 918, 919, 983, 1047, 1048, 1049, 1050, 1051],
-    'light.extended_color_light_1': [911, 912, 913, 914, 915, 916, 917, 918, 919, 983, 1047, 1048, 1049, 1050, 1051],
-    'light.foco3': [911, 912, 913, 914, 915, 916, 917, 918, 919, 983, 1047, 1048, 1049, 1050, 1051]
+    'light.foco1': [3614, 3616, 3618, 3620, 3622, 3624, 3626, 3628, 3630, 3886, 4142, 4144, 4146, 4148, 4150],
+    'light.extended_color_light_1': [3614, 3616, 3618, 3620, 3622, 3624, 3626, 3628, 3630, 3886, 4142, 4144, 4146, 4148, 4150],
+    'light.foco3': [3614, 3616, 3618, 3620, 3622, 3624, 3626, 3628, 3630, 3886, 4142, 4144, 4146, 4148, 4150]
 };
 
 const ALARM_ENTITIES = [
@@ -182,15 +182,15 @@ function setupGrid() {
     grid.className = 'grid-overlay';
     fpContainer.appendChild(grid);
 
-    // Grid 64x64 (4096 cells)
-    for (let i = 0; i < 4096; i++) {
+    // Grid 128x128 (16384 cells)
+    for (let i = 0; i < 16384; i++) {
         const cell = document.createElement('div');
         cell.className = 'grid-cell';
 
-        const row = Math.floor(i / 64);
-        const col = i % 64;
-        const x = (col * (100 / 64) + (100 / 128)).toFixed(2);
-        const y = (row * (100 / 64) + (100 / 128)).toFixed(2);
+        const row = Math.floor(i / 128);
+        const col = i % 128;
+        const x = (col * (100 / 128) + (100 / 256)).toFixed(3);
+        const y = (row * (100 / 128) + (100 / 256)).toFixed(3);
 
         cell.title = `ID: ${i}\nx: ${x}%, y: ${y}%`;
         cell.addEventListener('click', () => {
@@ -295,10 +295,10 @@ function initDynamicLayers() {
             const previous = cells[i - 1];
 
             if (previous !== undefined) {
-                const r1 = Math.floor(current / 64), c1 = current % 64;
-                const r2 = Math.floor(previous / 64), c2 = previous % 64;
-                // Allow neighbors (including diagonals) - Moore neighborhood
-                const isAdjacent = Math.abs(r1 - r2) <= 1 && Math.abs(c1 - c2) <= 1;
+                const r1 = Math.floor(current / 128), c1 = current % 128;
+                const r2 = Math.floor(previous / 128), c2 = previous % 128;
+                // Since points are often spaced by 2 (migrated from 64x64), we allow distance up to 2
+                const isAdjacent = Math.abs(r1 - r2) <= 2 && Math.abs(c1 - c2) <= 2;
 
                 if (!isAdjacent) {
                     segments.push(currentSegment);
@@ -318,9 +318,9 @@ function initDynamicLayers() {
             for (let i = 0; i < seg.length; i++) {
                 const cid = seg[i];
                 
-                const r = Math.floor(cid / 64), c = cid % 64;
-                const px = c * (100 / 64) + (100 / 128);
-                const py = r * (100 / 64) + (100 / 128);
+                const r = Math.floor(cid / 128), c = cid % 128;
+                const px = c * (100 / 128) + (100 / 256);
+                const py = r * (100 / 128) + (100 / 256);
                 
                 segmentPoints.push(`${px},${py}`);
             }
