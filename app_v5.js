@@ -9,11 +9,11 @@ const ZONES = [
     { id: 'zone-salita', entity_ids: ['light.pasillo2'], name: 'Salita' },
     { id: 'zone-cocina', entity_ids: ['light.cocina'], name: 'Cocina' },
     { id: 'zone-lavadero', entity_ids: ['light.lavadero'], name: 'Lavadero' },
-    { id: 'zone-bano1', entity_ids: ['light.bano_1'], name: 'Baño 1' },
+    { id: 'zone-bano1', entity_ids: ['light.bano_1', 'light.bano1'], name: 'Baño 1' },
     { id: 'zone-pasillo', entity_ids: ['light.pasillo1', 'light.foco1', 'light.extended_color_light_1', 'light.foco3'], name: 'Pasillo' },
-    { id: 'zone-nenes', entity_ids: ['light.luznenes'], name: 'Habitación Nenes' },
-    { id: 'zone-banosuite', entity_ids: ['light.bano_suite'], name: 'Baño Suite' },
-    { id: 'zone-dormitorio', entity_ids: ['light.luz_dormitorio'], name: 'Dormitorio Principal' }
+    { id: 'zone-nenes', entity_ids: ['light.luznenes', 'light.habitacion_ninos'], name: 'Habitación Nenes' },
+    { id: 'zone-banosuite', entity_ids: ['light.bano_suite', 'light.banosuite'], name: 'Baño Suite' },
+    { id: 'zone-dormitorio', entity_ids: ['light.luz_dormitorio', 'light.dormitorio'], name: 'Dormitorio Principal' }
 ];
 
 // Precision Grid Mapping (64x64)
@@ -40,15 +40,74 @@ let ws = null;
 let wsMsgId = 1;
 
 /* ──────────────────────────────────────────────
-   OAUTH & AUTH
+   OAUTH 2.0 — Token management
    ────────────────────────────────────────────── */
+function getClientId() {
+    const url = new URL(window.location.href);
+    return url.origin + url.pathname.replace(/\/[^\/]*$/, '/');
+}
+function getRedirectUri() { return getClientId() + 'dashboard.html'; }
 function getAccessToken() { return sessionStorage.getItem('ha_access_token'); }
+function getRefreshToken() { return sessionStorage.getItem('ha_refresh_token'); }
+
+function saveTokens(accessToken, refreshToken, expiresIn) {
+    sessionStorage.setItem('ha_access_token', accessToken);
+    if (refreshToken) sessionStorage.setItem('ha_refresh_token', refreshToken);
+    if (expiresIn) {
+        const msUntilRefresh = (expiresIn - 60) * 1000;
+        if (msUntilRefresh > 0) setTimeout(refreshAccessToken, msUntilRefresh);
+    }
+}
+
+function clearSession() {
+    sessionStorage.removeItem('ha_access_token');
+    sessionStorage.removeItem('ha_refresh_token');
+    sessionStorage.removeItem('ha_oauth_state');
+}
+
+function redirectToLogin() { window.location.href = 'index.html'; }
+
+async function refreshAccessToken() {
+    const refreshToken = getRefreshToken();
+    if (!refreshToken) { redirectToLogin(); return; }
+    try {
+        const body = new URLSearchParams({
+            grant_type: 'refresh_token',
+            refresh_token: refreshToken,
+            client_id: getClientId(),
+        });
+        const res = await fetch(`${HA_URL}/auth/token`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body.toString(),
+        });
+        if (!res.ok) throw new Error('Refresh failed');
+        const data = await res.json();
+        saveTokens(data.access_token, data.refresh_token, data.expires_in);
+        console.log('[OAuth] Token refreshed');
+    } catch (e) {
+        console.error('[OAuth] Refresh error:', e);
+        clearSession();
+        redirectToLogin();
+    }
+}
+
+async function haFetch(path, options = {}) {
+    const token = getAccessToken();
+    if (!token) { redirectToLogin(); return null; }
+    options.headers = { ...options.headers, 'Authorization': `Bearer ${token}` };
+    const res = await fetch(`${HA_URL}${path}`, options);
+    if (res.status === 401) {
+        await refreshAccessToken();
+        return haFetch(path, options);
+    }
+    return res;
+}
 
 async function fetchAllStates() {
     try {
-        const res = await fetch(`${HA_URL}/api/states`, {
-            headers: { 'Authorization': `Bearer ${getAccessToken()}` }
-        });
+        const res = await haFetch('/api/states');
+        if (!res || !res.ok) return;
         const data = await res.json();
         data.forEach(s => entityStates[s.entity_id] = { state: s.state, attributes: s.attributes });
         renderAll();
@@ -57,14 +116,12 @@ async function fetchAllStates() {
 
 async function callService(domain, service, serviceData) {
     try {
-        await fetch(`${HA_URL}/api/services/${domain}/${service}`, {
+        const res = await haFetch(`/api/services/${domain}/${service}`, {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${getAccessToken()}`,
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(serviceData),
         });
+        if (!res.ok) console.error(`Service call failed: ${res.status}`);
     } catch (e) { console.error('Service call error:', e); }
 }
 
@@ -210,7 +267,10 @@ function initDynamicLayers() {
             if (!zone) return;
             const isAnyOn = zone.entity_ids.some(eid => entityStates[eid]?.state === 'on');
             const service = isAnyOn ? 'turn_off' : 'turn_on';
-            zone.entity_ids.forEach(eid => callService('light', service, { entity_id: eid }));
+            zone.entity_ids.forEach(eid => {
+                const domain = eid.split('.')[0];
+                callService(domain, service, { entity_id: eid });
+            });
             showToast(`${zone.name} → ${isAnyOn ? 'Apagando' : 'Encendiendo ✨'}`);
         };
     });
