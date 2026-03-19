@@ -109,15 +109,32 @@ body {
 .led-polygon.active {
     stroke: var(--led-glow-color, var(--led-warm));
     fill: none;
-    /* Revert to line only for a cleaner look */
     opacity: 1;
     stroke-width: 0.6;
-    /* Balanced thickness for the rodapié */
     stroke-linecap: round;
     stroke-linejoin: round;
-    /* Atmospheric "Soft Glow" effect */
     filter:
-        drop-shadow(0 0 2px var(--led-glow-color, var(--led-warm))) drop-shadow(0 0 6px var(--led-glow-color, var(--led-warm))) drop-shadow(0 0 14px var(--led-glow-color, var(--led-warm)));
+        drop-shadow(0 0 2px var(--led-glow-color, var(--led-warm))) 
+        drop-shadow(0 0 6px var(--led-glow-color, var(--led-warm))) 
+        drop-shadow(0 0 14px var(--led-glow-color, var(--led-warm)));
+    animation: led-pulse 3s ease-in-out infinite;
+}
+
+@keyframes led-pulse {
+    0%, 100% {
+        opacity: 0.8;
+        filter:
+            drop-shadow(0 0 2px var(--led-glow-color, var(--led-warm))) 
+            drop-shadow(0 0 6px var(--led-glow-color, var(--led-warm))) 
+            drop-shadow(0 0 14px var(--led-glow-color, var(--led-warm)));
+    }
+    50% {
+        opacity: 1;
+        filter:
+            drop-shadow(0 0 3px var(--led-glow-color, var(--led-warm))) 
+            drop-shadow(0 0 10px var(--led-glow-color, var(--led-warm))) 
+            drop-shadow(0 0 20px var(--led-glow-color, var(--led-warm)));
+    }
 }
 
 /* ── Hit Areas (Transparent Interaction) ── */
