@@ -95,6 +95,55 @@ function connectWebSocket() {
 }
 
 /* ──────────────────────────────────────────────
+   POSITIONING GRID (64x64)
+   ────────────────────────────────────────────── */
+function setupGrid() {
+    const btn = document.getElementById('btn-grid');
+    const fpContainer = document.getElementById('fp-container');
+    if (!btn || !fpContainer) return;
+
+    const grid = document.createElement('div');
+    grid.id = 'fp-grid';
+    grid.className = 'grid-overlay';
+    fpContainer.appendChild(grid);
+
+    // Grid 64x64 (4096 cells)
+    for (let i = 0; i < 4096; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'grid-cell';
+
+        const row = Math.floor(i / 64);
+        const col = i % 64;
+        const x = (col * (100 / 64) + (100 / 128)).toFixed(2);
+        const y = (row * (100 / 64) + (100 / 128)).toFixed(2);
+
+        cell.title = `ID: ${i}\nx: ${x}%, y: ${y}%`;
+        cell.addEventListener('click', () => {
+            console.log(`LED ID: ${i} (x: ${x}%, y: ${y}%)`);
+            // Show toast using existing dash logic if available
+            if (typeof showToast === 'function') showToast(`ID ${i} copiado a consola`, '📍');
+        });
+        grid.appendChild(cell);
+    }
+
+    btn.addEventListener('click', () => {
+        const active = grid.classList.toggle('active');
+        btn.classList.toggle('active', active);
+    });
+}
+
+/* ──────────────────────────────────────────────
+   INIT
+   ────────────────────────────────────────────── */
+async function init() {
+    setupGrid();
+    initDynamicLayers();
+    // Use the API from the main app or a simple fetch
+    // For this context, we assume we just need to render the layers
+    renderAll();
+}
+
+/* ──────────────────────────────────────────────
    UI LOGIC & RENDERING
    ────────────────────────────────────────────── */
 function initDynamicLayers() {
@@ -146,8 +195,8 @@ function initDynamicLayers() {
             if (previous !== undefined) {
                 const r1 = Math.floor(current / 64), c1 = current % 64;
                 const r2 = Math.floor(previous / 64), c2 = previous % 64;
-                // Manhattan distance of 1 means they are immediate neighbors (up, down, left, right)
-                const isAdjacent = Math.abs(r1 - r2) + Math.abs(c1 - c2) === 1;
+                // Allow neighbors (including diagonals) - Moore neighborhood
+                const isAdjacent = Math.abs(r1 - r2) <= 1 && Math.abs(c1 - c2) <= 1;
 
                 if (!isAdjacent) {
                     segments.push(currentSegment);
@@ -237,7 +286,7 @@ function showToast(msg) {
 
 // Kickstart
 if (getAccessToken()) {
-    initDynamicLayers();
+    init();
     connectWebSocket();
 } else {
     window.location.href = 'index.html';
